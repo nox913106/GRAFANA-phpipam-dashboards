@@ -507,65 +507,6 @@
 
 
   <!-- ════════════════════════════════════════
-       SECTION 5 ── DHCP 健康度
-  ════════════════════════════════════════ -->
-  <div class="sec-title mt24">
-    <span>🏥</span><h2>連線健康度 — DHCP Server Ping</h2>
-  </div>
-
-  <!-- Dynamic stat cards (one per DHCP server) -->
-  <div style="display:grid; grid-template-columns:repeat({{ dhcp_avg_latency|length }}, 1fr); gap:16px;">
-    {% for dhcp in dhcp_avg_latency %}
-    {% set lat = dhcp.avg_latency %}
-    <div class="stat-card {% if lat >= 100 %}red{% elif lat >= 50 %}orange{% elif lat >= 10 %}yellow{% else %}green{% endif %}">
-      <div class="stat-label">{{ dhcp.metric }}</div>
-      <div class="stat-value {% if lat >= 100 %}red{% elif lat >= 50 %}orange{% elif lat >= 10 %}yellow{% else %}green{% endif %}">
-        {{ lat }}
-      </div>
-      <div class="stat-sub">ms (avg 24hr)</div>
-    </div>
-    {% endfor %}
-  </div>
-
-  <div class="tbl-card mt16">
-    <div class="tbl-title">DHCP 連線統計 (24hr)</div>
-    <table>
-      <thead>
-        <tr>
-          <th>DHCP Server</th><th>IP</th>
-          <th>Avg (ms)</th><th>Min (ms)</th><th>Max (ms)</th>
-          <th>Jitter (ms)</th><th>Uptime %</th><th>Samples</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for row in dhcp_stats %}
-        {% set avg = row['Avg (ms)'] %}
-        {% set up  = row['Uptime %'] %}
-        <tr>
-          <td><strong>{{ row['DHCP Server'] }}</strong></td>
-          <td>{{ row.IP }}</td>
-          <td>
-            <span class="badge {% if avg >= 100 %}bdg-high{% elif avg >= 50 %}bdg-warn{% else %}bdg-ok{% endif %}">
-              {{ avg }}
-            </span>
-          </td>
-          <td>{{ row['Min (ms)'] }}</td>
-          <td>{{ row['Max (ms)'] }}</td>
-          <td>{{ row['Jitter (ms)'] }}</td>
-          <td>
-            <span class="badge {% if up >= 99.9 %}bdg-ok{% elif up >= 99 %}bdg-warn{% else %}bdg-high{% endif %}">
-              {{ up }}%
-            </span>
-          </td>
-          <td>{{ row.Samples }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-
-
-  <!-- ════════════════════════════════════════
        AI 分析
   ════════════════════════════════════════ -->
   <div class="ai-wrap">

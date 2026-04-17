@@ -139,8 +139,6 @@ def build_analysis_prompt(data: dict) -> str:
 【高使用率網段（>80%）】
 {json.dumps(data['high_usage_detail'], ensure_ascii=False, indent=2)}
 
-【DHCP Server 健康度】
-{json.dumps(data['dhcp_stats'], ensure_ascii=False, indent=2)}
 ---
 
 請以 JSON 格式回覆（只回覆 JSON，不要其他說明文字）：
