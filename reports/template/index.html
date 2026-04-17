@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>phpIPAM 巡檢報表系統</title>
+  <style>
+    :root {
+      --blue:   #1976D2;
+      --green:  #388E3C;
+      --purple: #7B1FA2;
+      --orange: #F57C00;
+      --bg:     #F0F2F5;
+      --card:   #FFFFFF;
+      --border: #E0E0E0;
+      --text:   #212121;
+      --muted:  #757575;
+      --sidebar-w: 220px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI',
+                   'PingFang TC', 'Microsoft JhengHei', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── TOP BAR ── */
+    .topbar {
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      color: #fff;
+      padding: 0 28px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,.3);
+    }
+    .topbar-title { font-size: 17px; font-weight: 700; letter-spacing: .3px; }
+    .topbar-sub   { font-size: 12px; opacity: .6; margin-left: 12px; }
+    .topbar-stats { display: flex; gap: 20px; }
+    .topbar-stat  { text-align: center; }
+    .topbar-stat .num { font-size: 20px; font-weight: 700; }
+    .topbar-stat .lbl { font-size: 10px; opacity: .6; text-transform: uppercase; letter-spacing: .5px; }
+
+    /* ── LAYOUT ── */
+    .layout {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--card);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+    .sb-section { padding: 16px 16px 8px; }
+    .sb-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      margin-bottom: 8px;
+    }
+
+    /* Year tabs */
+    .year-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+    .year-btn {
+      padding: 4px 12px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      cursor: pointer;
+      font-size: 13px;
+      background: #fff;
+      color: var(--text);
+      transition: all .15s;
+    }
+    .year-btn:hover     { border-color: var(--blue); color: var(--blue); }
+    .year-btn.active    { background: var(--blue); color: #fff; border-color: var(--blue); }
+
+    /* Month grid */
+    .month-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+    .month-btn {
+      padding: 6px 4px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      text-align: center;
+      background: #fff;
+      color: var(--text);
+      transition: all .15s;
+    }
+    .month-btn:hover    { border-color: var(--blue); color: var(--blue); }
+    .month-btn.active   { background: var(--blue); color: #fff; border-color: var(--blue); }
+    .month-btn.empty    { opacity: .35; cursor: default; }
+    .month-btn.empty:hover { border-color: var(--border); color: var(--text); }
+
+    /* Type filter */
+    .type-list { display: flex; flex-direction: column; gap: 4px; }
+    .type-btn {
+      padding: 7px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background .15s;
+      border: none;
+      background: transparent;
+      text-align: left;
+      width: 100%;
+    }
+    .type-btn:hover  { background: #F5F5F5; }
+    .type-btn.active { background: #EEF4FF; color: var(--blue); font-weight: 600; }
+    .type-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    }
+    .dot-all     { background: var(--muted); }
+    .dot-daily   { background: var(--blue); }
+    .dot-weekly  { background: var(--green); }
+    .dot-monthly { background: var(--purple); }
+
+    .sb-divider { border: none; border-top: 1px solid var(--border); margin: 4px 0; }
+
+    /* ── MAIN ── */
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 24px;
+    }
+    .main-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .main-title  { font-size: 16px; font-weight: 600; }
+    .main-count  { font-size: 13px; color: var(--muted); }
+
+    /* ── REPORT LIST ── */
+    .report-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .report-card {
+      background: var(--card);
+      border-radius: 10px;
+      padding: 16px 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.07);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      transition: box-shadow .15s;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      border: 1px solid transparent;
+    }
+    .report-card:hover {
+      box-shadow: 0 3px 10px rgba(0,0,0,.12);
+      border-color: var(--blue);
+    }
+
+    .rc-date-block {
+      width: 56px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .rc-day   { font-size: 28px; font-weight: 700; line-height: 1; }
+    .rc-month { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; }
+    .rc-year  { font-size: 11px; color: var(--muted); }
+
+    .rc-divider {
+      width: 1px; height: 40px;
+      background: var(--border);
+      flex-shrink: 0;
+    }
+
+    .rc-body { flex: 1; min-width: 0; }
+    .rc-title {
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .rc-meta  { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+    .rc-badge {
+      display: inline-block;
+      padding: 2px 9px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .bdg-daily   { background: #E3F2FD; color: #1565C0; }
+    .bdg-weekly  { background: #E8F5E9; color: #2E7D32; }
+    .bdg-monthly { background: #F3E5F5; color: #6A1B9A; }
+
+    .rc-open {
+      padding: 7px 16px;
+      border-radius: 6px;
+      background: var(--blue);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      flex-shrink: 0;
+      border: none;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .rc-open:hover { background: #1565C0; }
+
+    /* ── EMPTY / LOADING ── */
+    .state-msg {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+    }
+    .state-msg .icon { font-size: 40px; margin-bottom: 12px; }
+    .state-msg p     { font-size: 14px; }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #CCC; border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<!-- ── TOP BAR ── -->
+<div class="topbar">
+  <div style="display:flex;align-items:center">
+    <span class="topbar-title">phpIPAM 巡檢報表系統</span>
+    <span class="topbar-sub">歷史報表瀏覽</span>
+  </div>
+  <div class="topbar-stats" id="topbarStats">
+    <div class="topbar-stat"><div class="num" id="statTotal">—</div><div class="lbl">Total</div></div>
+    <div class="topbar-stat"><div class="num" id="statDaily">—</div><div class="lbl">Daily</div></div>
+    <div class="topbar-stat"><div class="num" id="statWeekly">—</div><div class="lbl">Weekly</div></div>
+    <div class="topbar-stat"><div class="num" id="statMonthly">—</div><div class="lbl">Monthly</div></div>
+  </div>
+</div>
+
+<!-- ── LAYOUT ── -->
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+
+    <div class="sb-section">
+      <div class="sb-label">年份</div>
+      <div class="year-tabs" id="yearTabs">
+        <span style="font-size:12px;color:var(--muted)">載入中...</span>
+      </div>
+    </div>
+
+    <hr class="sb-divider">
+
+    <div class="sb-section">
+      <div class="sb-label">月份</div>
+      <div class="month-grid" id="monthGrid"></div>
+    </div>
+
+    <hr class="sb-divider">
+
+    <div class="sb-section">
+      <div class="sb-label">報表類型</div>
+      <div class="type-list">
+        <button class="type-btn active" data-type="" onclick="setType(this,'')">
+          <span class="type-dot dot-all"></span>全部
+        </button>
+        <button class="type-btn" data-type="daily" onclick="setType(this,'daily')">
+          <span class="type-dot dot-daily"></span>日巡檢
+        </button>
+        <button class="type-btn" data-type="weekly" onclick="setType(this,'weekly')">
+          <span class="type-dot dot-weekly"></span>週巡檢
+        </button>
+        <button class="type-btn" data-type="monthly" onclick="setType(this,'monthly')">
+          <span class="type-dot dot-monthly"></span>月巡檢
+        </button>
+      </div>
+    </div>
+
+  </div><!-- /sidebar -->
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="main-header">
+      <div class="main-title" id="mainTitle">所有報表</div>
+      <div class="main-count" id="mainCount"></div>
+    </div>
+    <div class="report-list" id="reportList">
+      <div class="state-msg">
+        <div class="icon">⏳</div>
+        <p>載入中...</p>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /layout -->
+
+<script>
+// ════════════════════════════════════════════════════════
+// 狀態
+// ════════════════════════════════════════════════════════
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun",
+                "Jul","Aug","Sep","Oct","Nov","Dec"];
+const TYPE_LABEL = { daily: "日巡檢", weekly: "週巡檢", monthly: "月巡檢" };
+const TYPE_BADGE = { daily: "bdg-daily", weekly: "bdg-weekly", monthly: "bdg-monthly" };
+
+let state = { year: null, month: null, type: "" };
+let allReports = [];
+let availableMonths = new Set();
+
+
+// ════════════════════════════════════════════════════════
+// 啟動
+// ════════════════════════════════════════════════════════
+async function init() {
+  await loadStats();
+  const years = await fetch("/api/years").then(r => r.json());
+  renderYearTabs(years);
+
+  if (years.length > 0) {
+    state.year = years[0];
+    document.querySelector(`.year-btn[data-year="${state.year}"]`)?.classList.add("active");
+  }
+  await loadReports();
+}
+
+
+// ════════════════════════════════════════════════════════
+// 載入
+// ════════════════════════════════════════════════════════
+async function loadStats() {
+  const s = await fetch("/api/stats").then(r => r.json());
+  document.getElementById("statTotal").textContent   = s.total ?? 0;
+  document.getElementById("statDaily").textContent   = s.by_type?.daily   ?? 0;
+  document.getElementById("statWeekly").textContent  = s.by_type?.weekly  ?? 0;
+  document.getElementById("statMonthly").textContent = s.by_type?.monthly ?? 0;
+}
+
+async function loadReports() {
+  const params = new URLSearchParams();
+  if (state.year)  params.set("year",  state.year);
+  if (state.month) params.set("month", state.month);
+  if (state.type)  params.set("type",  state.type);
+
+  const reports = await fetch("/api/reports?" + params).then(r => r.json());
+  allReports = reports;
+
+  // 計算本年有資料的月份
+  availableMonths = new Set(reports.map(r => r.month));
+  renderMonthGrid();
+  renderReports(reports);
+  updateHeader();
+}
+
+
+// ════════════════════════════════════════════════════════
+// 渲染
+// ════════════════════════════════════════════════════════
+function renderYearTabs(years) {
+  const el = document.getElementById("yearTabs");
+  if (!years.length) {
+    el.innerHTML = `<span style="font-size:12px;color:var(--muted)">尚無資料</span>`;
+    return;
+  }
+  el.innerHTML = years.map(y =>
+    `<button class="year-btn" data-year="${y}" onclick="setYear(this,${y})">${y}</button>`
+  ).join("");
+}
+
+function renderMonthGrid() {
+  const el = document.getElementById("monthGrid");
+  el.innerHTML = MONTHS.map(m => {
+    const hasData = availableMonths.has(m);
+    const isActive = state.month === m;
+    const cls = [
+      "month-btn",
+      !hasData ? "empty" : "",
+      isActive  ? "active" : "",
+    ].filter(Boolean).join(" ");
+    const click = hasData ? `onclick="setMonth(this,'${m}')"` : "";
+    return `<button class="${cls}" data-month="${m}" ${click}>${m}</button>`;
+  }).join("");
+}
+
+function renderReports(reports) {
+  const el = document.getElementById("reportList");
+  if (!reports.length) {
+    el.innerHTML = `
+      <div class="state-msg">
+        <div class="icon">📭</div>
+        <p>此篩選條件下無報表</p>
+      </div>`;
+    return;
+  }
+  el.innerHTML = reports.map(r => {
+    const d    = new Date(r.report_date);
+    const day  = String(d.getUTCDate()).padStart(2, "0");
+    const mon  = MONTHS[d.getUTCMonth()];
+    const year = d.getUTCFullYear();
+    const size = r.file_size ? `${(r.file_size / 1024).toFixed(0)} KB` : "—";
+    const type = r.report_type || "daily";
+    const typeLbl  = TYPE_LABEL[type]  || type;
+    const typeCls  = TYPE_BADGE[type]  || "bdg-daily";
+    const url  = `/archive/${r.file_path}`;
+    return `
+      <a class="report-card" href="${url}" target="_blank">
+        <div class="rc-date-block">
+          <div class="rc-day">${day}</div>
+          <div class="rc-month">${mon}</div>
+          <div class="rc-year">${year}</div>
+        </div>
+        <div class="rc-divider"></div>
+        <div class="rc-body">
+          <div class="rc-title">${typeLbl} — ${r.report_date}</div>
+          <div class="rc-meta">產生時間：${r.created_at} &nbsp;·&nbsp; 大小：${size}</div>
+        </div>
+        <span class="rc-badge ${typeCls}">${typeLbl}</span>
+        <button class="rc-open" onclick="event.preventDefault();window.open('${url}','_blank')">開啟報表</button>
+      </a>`;
+  }).join("");
+}
+
+function updateHeader() {
+  const parts = [];
+  if (state.year)  parts.push(state.year);
+  if (state.month) parts.push(state.month);
+  if (state.type)  parts.push(TYPE_LABEL[state.type]);
+  document.getElementById("mainTitle").textContent =
+    parts.length ? parts.join(" / ") : "所有報表";
+  document.getElementById("mainCount").textContent =
+    `共 ${allReports.length} 份`;
+}
+
+
+// ════════════════════════════════════════════════════════
+// 事件處理
+// ════════════════════════════════════════════════════════
+function setYear(btn, year) {
+  document.querySelectorAll(".year-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  state.year  = year;
+  state.month = null;  // 換年份清除月份選擇
+  loadReports();
+}
+
+function setMonth(btn, month) {
+  if (btn.classList.contains("empty")) return;
+  const isActive = btn.classList.contains("active");
+  document.querySelectorAll(".month-btn").forEach(b => b.classList.remove("active"));
+  if (!isActive) {
+    btn.classList.add("active");
+    state.month = month;
+  } else {
+    state.month = null;
+  }
+  loadReports();
+}
+
+function setType(btn, type) {
+  document.querySelectorAll(".type-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  state.type = type;
+  loadReports();
+}
+
+
+// ════════════════════════════════════════════════════════
+// 啟動
+// ════════════════════════════════════════════════════════
+init();
+</script>
+</body>
+</html>

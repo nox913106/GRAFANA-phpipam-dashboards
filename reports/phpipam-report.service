@@ -1,0 +1,16 @@
+[Unit]
+Description=phpIPAM Report Server (port 8088)
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/GRAFANA-phpipam-dashboards/reports
+ExecStart=/usr/bin/python3 /opt/GRAFANA-phpipam-dashboards/reports/report_server.py
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
