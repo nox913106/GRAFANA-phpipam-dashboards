@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>phpIPAM 日巡檢報表 — {{ report_date }}</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --blue:   #1976D2;
+      --green:  #388E3C;
+      --red:    #D32F2F;
+      --orange: #F57C00;
+      --purple: #7B1FA2;
+      --yellow: #F9A825;
+      --bg:     #F5F5F5;
+      --card:   #FFFFFF;
+      --border: #E0E0E0;
+      --text:   #212121;
+      --muted:  #757575;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang TC',
+                   'Microsoft JhengHei', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .page { max-width: 1440px; margin: 0 auto; padding: 24px; }
+
+    /* ── HEADER ── */
+    .report-header {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #fff;
+      padding: 28px 36px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+    .report-header h1 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+    .report-header .meta { font-size: 13px; opacity: .8; line-height: 1.9; }
+    .report-badge {
+      background: rgba(255,255,255,.15);
+      border: 1px solid rgba(255,255,255,.3);
+      border-radius: 20px;
+      padding: 6px 18px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    /* ── SECTION TITLE ── */
+    .sec-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 28px 0 16px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--border);
+    }
+    .sec-title h2 { font-size: 15px; font-weight: 600; }
+
+    /* ── GRID HELPERS ── */
+    .g3  { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .g4  { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .g2  { display: grid; grid-template-columns: 1fr 1fr;       gap: 16px; }
+    .g13 { display: grid; grid-template-columns: 1fr 2fr;       gap: 16px; }
+    .mt16 { margin-top: 16px; }
+    .mt24 { margin-top: 24px; }
+
+    /* ── STAT CARDS ── */
+    .stat-card {
+      background: var(--card);
+      border-radius: 10px;
+      padding: 20px 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.08);
+      border-top: 4px solid var(--border);
+    }
+    .stat-card.blue   { border-top-color: var(--blue);   }
+    .stat-card.green  { border-top-color: var(--green);  }
+    .stat-card.red    { border-top-color: var(--red);    }
+    .stat-card.purple { border-top-color: var(--purple); }
+    .stat-card.orange { border-top-color: var(--orange); }
+    .stat-card.yellow { border-top-color: var(--yellow); }
+    .stat-card.gray   { border-top-color: var(--muted);  }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      margin-bottom: 8px;
+    }
+    .stat-value {
+      font-size: 38px;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--text);
+    }
+    .stat-value.blue   { color: var(--blue);   }
+    .stat-value.green  { color: var(--green);  }
+    .stat-value.red    { color: var(--red);    }
+    .stat-value.purple { color: var(--purple); }
+    .stat-value.orange { color: var(--orange); }
+    .stat-value.yellow { color: var(--yellow); }
+    .stat-sub { font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+    /* ── CHART CARD ── */
+    .chart-card {
+      background: var(--card);
+      border-radius: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.08);
+      padding: 16px 18px;
+    }
+    .chart-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      margin-bottom: 14px;
+    }
+
+    /* ── TABLE CARD ── */
+    .tbl-card {
+      background: var(--card);
+      border-radius: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.08);
+      overflow: hidden;
+    }
+    .tbl-title {
+      padding: 12px 16px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      background: #FAFAFA;
+      border-bottom: 1px solid var(--border);
+    }
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      background: #F8F9FA;
+      text-align: left;
+      padding: 9px 14px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    td {
+      padding: 8px 14px;
+      font-size: 13px;
+      border-bottom: 1px solid #F5F5F5;
+      vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #FAFAFA; }
+    code { font-size: 12px; background: #F3F4F6; padding: 1px 5px; border-radius: 3px; }
+
+    /* ── BADGES ── */
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .bdg-modify  { background: #E3F2FD; color: #1565C0; }
+    .bdg-deleted { background: #FFEBEE; color: #B71C1C; }
+    .bdg-add     { background: #E8F5E9; color: #1B5E20; }
+    .bdg-high    { background: #FFCDD2; color: #C62828; }
+    .bdg-warn    { background: #FFF9C4; color: #F57F17; }
+    .bdg-ok      { background: #C8E6C9; color: #1B5E20; }
+
+    .tx-red   { color: var(--red);   font-weight: 500; }
+    .tx-green { color: var(--green); font-weight: 500; }
+
+    /* ── AI SECTION ── */
+    .ai-wrap {
+      background: linear-gradient(135deg, #EFF6FF 0%, #F0FDF4 100%);
+      border: 1px solid #BFDBFE;
+      border-radius: 12px;
+      padding: 28px 32px;
+      margin-top: 28px;
+    }
+    .ai-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+    .ai-icon {
+      width: 42px; height: 42px;
+      background: linear-gradient(135deg, #3B82F6, #10B981);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 20px; flex-shrink: 0;
+    }
+    .ai-header-text .ai-title  { font-size: 18px; font-weight: 700; color: #1E40AF; }
+    .ai-header-text .ai-sub    { font-size: 12px; color: #6B7280; }
+    .ai-summary {
+      background: #fff;
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      line-height: 1.9;
+      border-left: 4px solid #3B82F6;
+    }
+    .ai-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .ai-col {
+      background: #fff;
+      border-radius: 8px;
+      padding: 16px 20px;
+    }
+    .ai-col h4 {
+      font-size: 13px; font-weight: 700;
+      margin-bottom: 12px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .ai-col.focus h4   { color: #DC2626; }
+    .ai-col.suggest h4 { color: #047857; }
+    .ai-col ul { list-style: none; }
+    .ai-col ul li {
+      font-size: 13px;
+      padding: 7px 0;
+      border-bottom: 1px solid #F3F4F6;
+      line-height: 1.6;
+      display: flex;
+      gap: 8px;
+    }
+    .ai-col ul li:last-child { border-bottom: none; }
+    .ai-col.focus   ul li::before { content: "⚠️"; flex-shrink: 0; margin-top: 1px; }
+    .ai-col.suggest ul li::before { content: "💡"; flex-shrink: 0; margin-top: 1px; }
+
+    /* ── FOOTER ── */
+    .rpt-footer {
+      margin-top: 28px;
+      padding: 16px 0;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    /* ── PRINT ── */
+    @media print {
+      body { background: #fff; }
+      .page { padding: 0; }
+      .report-header, .stat-card, .ai-wrap {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .stat-card, .tbl-card, .chart-card { break-inside: avoid; }
+      .ai-wrap { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ════════════════════════════════════════
+       HEADER
+  ════════════════════════════════════════ -->
+  <div class="report-header">
+    <div>
+      <h1>phpIPAM 日巡檢報表</h1>
+      <div class="meta">
+        <div>資料範圍：{{ time_range }}</div>
+        <div>產生時間：{{ generated_at }}</div>
+      </div>
+    </div>
+    <span class="report-badge">Daily Report</span>
+  </div>
+
+
+  <!-- ════════════════════════════════════════
+       SECTION 1 ── 全局概覽
+  ════════════════════════════════════════ -->
+  <div class="sec-title">
+    <span>📊</span><h2>全局概覽</h2>
+  </div>
+
+  <div class="g3">
+    <div class="stat-card blue">
+      <div class="stat-label">總 IP 數量</div>
+      <div class="stat-value blue">{{ overview.total_ip }}</div>
+      <div class="stat-sub">所有已登記 IP（排除 TC_YueyuenHotel）</div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-label">Active IP</div>
+      <div class="stat-value green">{{ overview.active_ip }}</div>
+      <div class="stat-sub">state=2，24hr 內有 lastSeen，排除 DHCP Pool</div>
+    </div>
+    <div class="stat-card purple">
+      <div class="stat-label">DHCP Pool IP</div>
+      <div class="stat-value purple">{{ overview.dhcp_pool_ip }}</div>
+      <div class="stat-sub">custom_DHCP_pool_range = 1</div>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════════════════════
+       SECTION 2 ── IP 狀態分佈
+  ════════════════════════════════════════ -->
+  <div class="sec-title mt24">
+    <span>📈</span><h2>IP 狀態分佈</h2>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-title">各站點啟用網段數</div>
+    <canvas id="chartSiteSubnets" height="110"></canvas>
+  </div>
+
+  <div class="chart-card mt16">
+    <div class="chart-title">各 Section IP 分類分佈（網段總量）</div>
+    <canvas id="chartSiteCapacity" height="110"></canvas>
+  </div>
+
+
+  <!-- ════════════════════════════════════════
+       SECTION 3 ── IP 異動
+  ════════════════════════════════════════ -->
+  <div class="sec-title mt24">
+    <span>🔄</span><h2>最近 24 小時靜態 IP 異動（MAC / Hostname / Owner）</h2>
+  </div>
+
+  <!-- 4 Stat Cards -->
+  <div class="g4">
+    {% set total = changes.total %}
+    <div class="stat-card {% if total >= 500 %}red{% elif total >= 200 %}orange{% elif total >= 50 %}yellow{% else %}green{% endif %}">
+      <div class="stat-label">異動總筆數</div>
+      <div class="stat-value {% if total >= 500 %}red{% elif total >= 200 %}orange{% elif total >= 50 %}yellow{% else %}green{% endif %}">{{ total }}</div>
+      <div class="stat-sub">ADD + MODIFY + DELETED</div>
+    </div>
+    <div class="stat-card blue">
+      <div class="stat-label">MODIFY</div>
+      <div class="stat-value blue">{{ changes.modify }}</div>
+      <div class="stat-sub">欄位變更（MAC / Hostname / Owner）</div>
+    </div>
+    <div class="stat-card red">
+      <div class="stat-label">DELETED</div>
+      <div class="stat-value red">{{ changes.deleted }}</div>
+      <div class="stat-sub">IP 刪除紀錄</div>
+    </div>
+    <div class="stat-card purple">
+      <div class="stat-label">活躍操作者</div>
+      <div class="stat-value purple">{{ changes.operators }}</div>
+      <div class="stat-sub">不同操作帳號數</div>
+    </div>
+  </div>
+
+  <!-- 3 Bar Charts -->
+  <div class="g3 mt16">
+    <div class="chart-card">
+      <div class="chart-title">變更類型分佈</div>
+      <canvas id="chartChangeType" height="180"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">操作者排行</div>
+      <canvas id="chartOperator" height="180"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Section 異動熱度 TOP 10</div>
+      <canvas id="chartSectionHeat" height="180"></canvas>
+    </div>
+  </div>
+
+  <!-- 高頻異動 IP + 子網路摘要 -->
+  <div class="g13 mt16">
+    <div class="tbl-card">
+      <div class="tbl-title">高頻異動 IP TOP 5</div>
+      <table>
+        <thead>
+          <tr><th>IP</th><th>異動次數</th></tr>
+        </thead>
+        <tbody>
+          {% for row in hot_ips %}
+          <tr>
+            <td><code>{{ row.ip }}</code></td>
+            <td>
+              <span class="badge {% if row.change_times >= 10 %}bdg-deleted{% elif row.change_times >= 5 %}bdg-warn{% else %}bdg-modify{% endif %}">
+                {{ row.change_times }}
+              </span>
+            </td>
+          </tr>
+          {% endfor %}
+          {% if not hot_ips %}
+          <tr><td colspan="2" style="color:var(--muted);text-align:center;padding:20px">無高頻異動 IP</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="tbl-card">
+      <div class="tbl-title">子網路異動摘要</div>
+      <table>
+        <thead>
+          <tr><th>Subnet</th><th>Desc</th><th>Section</th><th>Mod</th><th>Del</th><th>Total</th></tr>
+        </thead>
+        <tbody>
+          {% for row in subnet_changes %}
+          <tr>
+            <td><code>{{ row.Subnet }}</code></td>
+            <td>{{ row.Desc }}</td>
+            <td>{{ row.Section }}</td>
+            <td>{{ row.Mod }}</td>
+            <td {% if row.Del > 0 %}class="tx-red"{% endif %}>{{ row.Del }}</td>
+            <td><strong>{{ row.Total }}</strong></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 變更明細 Table -->
+  <div class="tbl-card mt16">
+    <div class="tbl-title">靜態 IP 欄位變更紀錄 (24hr)</div>
+    <table>
+      <thead>
+        <tr>
+          <th>偵測時間</th>
+          <th>IP</th>
+          <th>變更類型</th>
+          <th>Old Value</th>
+          <th>New Value</th>
+          <th>操作者</th>
+          <th>Subnet</th>
+          <th>Section</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in change_records %}
+        <tr>
+          <td style="white-space:nowrap;font-size:12px">{{ row.Detected }}</td>
+          <td><code>{{ row.IP }}</code></td>
+          <td>
+            {% set cf = row['Changed Field'] | upper %}
+            <span class="badge {% if cf == 'MODIFY' %}bdg-modify{% elif cf == 'DELETED' %}bdg-deleted{% else %}bdg-add{% endif %}">
+              {{ cf }}
+            </span>
+          </td>
+          <td class="tx-red" style="font-size:12px">{{ row['Old Value'] }}</td>
+          <td class="tx-green" style="font-size:12px">{{ row['New Value'] }}</td>
+          <td>{{ row['Changed By'] }}</td>
+          <td><code>{{ row.Subnet }}</code></td>
+          <td>{{ row.Section }}</td>
+        </tr>
+        {% endfor %}
+        {% if not change_records %}
+        <tr><td colspan="8" style="color:var(--muted);text-align:center;padding:20px">24 小時內無異動紀錄</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+
+  <!-- ════════════════════════════════════════
+       SECTION 4 ── 高使用率網段
+  ════════════════════════════════════════ -->
+  <div class="sec-title mt24">
+    <span>🔴</span><h2>高使用率網段（&gt;80%）</h2>
+  </div>
+
+  <div class="g2">
+    <div class="chart-card">
+      <div class="chart-title">高使用率網段 TOP 5</div>
+      <canvas id="chartHighUsage" height="200"></canvas>
+    </div>
+
+    <div class="tbl-card">
+      <div class="tbl-title">高使用率網段明細</div>
+      <table>
+        <thead>
+          <tr><th>Subnet CIDR</th><th>Description</th><th>Section</th><th>Used</th><th>Total</th><th>Free</th><th>Usage %</th></tr>
+        </thead>
+        <tbody>
+          {% for row in high_usage_detail %}
+          <tr>
+            <td><code>{{ row['Subnet CIDR'] }}</code></td>
+            <td style="font-size:12px">{{ row.Description }}</td>
+            <td>{{ row.Section }}</td>
+            <td>{{ row['Used IPs'] }}</td>
+            <td>{{ row['Total Hosts'] }}</td>
+            <td>{{ row['Free IPs'] }}</td>
+            <td>
+              <span class="badge {% if row['Usage %'] >= 95 %}bdg-high{% elif row['Usage %'] >= 90 %}bdg-warn{% else %}bdg-ok{% endif %}">
+                {{ row['Usage %'] }}%
+              </span>
+            </td>
+          </tr>
+          {% endfor %}
+          {% if not high_usage_detail %}
+          <tr><td colspan="7" style="color:var(--muted);text-align:center;padding:20px">無高使用率網段</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════════════════════
+       SECTION 5 ── DHCP 健康度
+  ════════════════════════════════════════ -->
+  <div class="sec-title mt24">
+    <span>🏥</span><h2>連線健康度 — DHCP Server Ping</h2>
+  </div>
+
+  <!-- Dynamic stat cards (one per DHCP server) -->
+  <div style="display:grid; grid-template-columns:repeat({{ dhcp_avg_latency|length }}, 1fr); gap:16px;">
+    {% for dhcp in dhcp_avg_latency %}
+    {% set lat = dhcp.avg_latency %}
+    <div class="stat-card {% if lat >= 100 %}red{% elif lat >= 50 %}orange{% elif lat >= 10 %}yellow{% else %}green{% endif %}">
+      <div class="stat-label">{{ dhcp.metric }}</div>
+      <div class="stat-value {% if lat >= 100 %}red{% elif lat >= 50 %}orange{% elif lat >= 10 %}yellow{% else %}green{% endif %}">
+        {{ lat }}
+      </div>
+      <div class="stat-sub">ms (avg 24hr)</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="tbl-card mt16">
+    <div class="tbl-title">DHCP 連線統計 (24hr)</div>
+    <table>
+      <thead>
+        <tr>
+          <th>DHCP Server</th><th>IP</th>
+          <th>Avg (ms)</th><th>Min (ms)</th><th>Max (ms)</th>
+          <th>Jitter (ms)</th><th>Uptime %</th><th>Samples</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in dhcp_stats %}
+        {% set avg = row['Avg (ms)'] %}
+        {% set up  = row['Uptime %'] %}
+        <tr>
+          <td><strong>{{ row['DHCP Server'] }}</strong></td>
+          <td>{{ row.IP }}</td>
+          <td>
+            <span class="badge {% if avg >= 100 %}bdg-high{% elif avg >= 50 %}bdg-warn{% else %}bdg-ok{% endif %}">
+              {{ avg }}
+            </span>
+          </td>
+          <td>{{ row['Min (ms)'] }}</td>
+          <td>{{ row['Max (ms)'] }}</td>
+          <td>{{ row['Jitter (ms)'] }}</td>
+          <td>
+            <span class="badge {% if up >= 99.9 %}bdg-ok{% elif up >= 99 %}bdg-warn{% else %}bdg-high{% endif %}">
+              {{ up }}%
+            </span>
+          </td>
+          <td>{{ row.Samples }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+
+  <!-- ════════════════════════════════════════
+       AI 分析
+  ════════════════════════════════════════ -->
+  <div class="ai-wrap">
+    <div class="ai-header">
+      <div class="ai-icon">🤖</div>
+      <div class="ai-header-text">
+        <div class="ai-title">AI 智慧分析</div>
+        <div class="ai-sub">由 Claude AI 基於本日巡檢數據自動生成</div>
+      </div>
+    </div>
+
+    <div class="ai-summary">{{ ai_analysis.summary }}</div>
+
+    <div class="ai-cols">
+      <div class="ai-col focus">
+        <h4>⚠️ 關注重點</h4>
+        <ul>
+          {% for point in ai_analysis.focus_points %}
+          <li>{{ point }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div class="ai-col suggest">
+        <h4>💡 改善建議</h4>
+        <ul>
+          {% for s in ai_analysis.suggestions %}
+          <li>{{ s }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════════════════════
+       FOOTER
+  ════════════════════════════════════════ -->
+  <div class="rpt-footer">
+    phpIPAM 日巡檢報表 &nbsp;·&nbsp; 產生時間 {{ generated_at }} &nbsp;·&nbsp; 由自動化報表系統生成
+  </div>
+
+</div><!-- /page -->
+
+
+<!-- ════════════════════════════════════════
+     Chart.js 初始化
+     資料由 Jinja2 渲染後以 JSON 嵌入
+════════════════════════════════════════ -->
+<script>
+const SITE_SUBNETS  = {{ site_subnets    | tojson }};
+const SITE_CAPACITY = {{ site_ip_capacity | tojson }};
+const CHANGE_TYPE   = {{ change_type_dist | tojson }};
+const OPERATORS     = {{ operator_ranking | tojson }};
+const SEC_HEAT      = {{ section_heat     | tojson }};
+const HIGH_USAGE    = {{ high_usage_subnets_top5 | tojson }};
+
+const CAT_COLORS = {
+  Server: '#1976D2',
+  IIOT:   '#F57C00',
+  OA:     '#388E3C',
+  Voice:  '#42A5F5',
+  Guest:  '#FDD835',
+  Others: '#7B1FA2',
+};
+const CHANGE_COLORS = {
+  MODIFY:  '#1976D2',
+  ADD:     '#388E3C',
+  DELETED: '#D32F2F',
+};
+
+/* ── 水平堆疊長條圖（站點網段 / 容量） ── */
+function stackedBar(id, data, height) {
+  const cats = ['Server','IIOT','OA','Voice','Guest','Others'];
+  new Chart(document.getElementById(id), {
+    type: 'bar',
+    data: {
+      labels: data.map(d => d.site),
+      datasets: cats.map(c => ({
+        label: c,
+        data: data.map(d => d[c] || 0),
+        backgroundColor: CAT_COLORS[c],
+        borderRadius: 2,
+      }))
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      plugins: {
+        legend: { position: 'right', labels: { boxWidth: 12, font: { size: 11 } } }
+      },
+      scales: {
+        x: { stacked: true, grid: { color: '#F0F0F0' } },
+        y: { stacked: true, ticks: { font: { size: 12 } } }
+      }
+    }
+  });
+}
+
+/* ── 水平長條圖（操作者 / 類型 / Section） ── */
+function hBar(id, data, colorMap) {
+  const colors = data.map(d => (colorMap && colorMap[d.metric]) || '#4A9EFF');
+  new Chart(document.getElementById(id), {
+    type: 'bar',
+    data: {
+      labels: data.map(d => d.metric),
+      datasets: [{ data: data.map(d => d.value), backgroundColor: colors, borderRadius: 3 }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#F0F0F0' } },
+        y: { ticks: { font: { size: 11 } } }
+      }
+    }
+  });
+}
+
+/* ── 高使用率 Progress Bar 風格 ── */
+function usageBar(id, data) {
+  const colors = data.map(d =>
+    d.usage_pct >= 95 ? '#D32F2F' : d.usage_pct >= 90 ? '#F57C00' : '#F9A825'
+  );
+  new Chart(document.getElementById(id), {
+    type: 'bar',
+    data: {
+      labels: data.map(d => d.subnet),
+      datasets: [{
+        label: 'Usage %',
+        data: data.map(d => d.usage_pct),
+        backgroundColor: colors,
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: {
+          beginAtZero: true, max: 100,
+          ticks: { callback: v => v + '%' },
+          grid: { color: '#F0F0F0' }
+        },
+        y: { ticks: { font: { size: 12 } } }
+      }
+    }
+  });
+}
+
+stackedBar('chartSiteSubnets',  SITE_SUBNETS);
+stackedBar('chartSiteCapacity', SITE_CAPACITY);
+hBar('chartChangeType',  CHANGE_TYPE, CHANGE_COLORS);
+hBar('chartOperator',    OPERATORS,   null);
+hBar('chartSectionHeat', SEC_HEAT,    null);
+usageBar('chartHighUsage', HIGH_USAGE);
+</script>
+</body>
+</html>

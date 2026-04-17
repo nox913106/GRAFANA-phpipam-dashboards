@@ -1,0 +1,44 @@
+[
+    {
+        "ip": "172.16.5.196",
+        "hostname": "DHCP-CH-HQ2",
+        "location": "彰化總部2",
+        "enabled": true
+    },
+    {
+        "ip": "172.23.13.10",
+        "hostname": "DHCP-CH-PGT",
+        "location": "彰化埔鹽",
+        "enabled": true
+    },
+    {
+        "ip": "172.23.174.5",
+        "hostname": "DHCP-TC-HQ",
+        "location": "台中總部",
+        "enabled": true
+    },
+    {
+        "ip": "172.23.199.150",
+        "hostname": "DHCP-TC-UAIC",
+        "location": "台中",
+        "enabled": true
+    },
+    {
+        "ip": "172.23.110.1",
+        "hostname": "DHCP-TP-XY",
+        "location": "台北",
+        "enabled": true
+    },
+    {
+        "ip": "172.23.94.254",
+        "hostname": "DHCP-TP-BaoYu",
+        "location": "台北寶裕",
+        "enabled": true
+    },
+    {
+        "ip": "172.23.127.169",
+        "hostname": "DHCP-TC-CBD",
+        "location": "台中CBD",
+        "enabled": true
+    }
+]

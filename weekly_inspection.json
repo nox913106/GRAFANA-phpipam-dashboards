@@ -1,0 +1,971 @@
+{
+    "annotations": {
+        "list": [
+            {
+                "builtIn": 1,
+                "datasource": {
+                    "type": "grafana",
+                    "uid": "-- Grafana --"
+                },
+                "enable": true,
+                "hide": true,
+                "iconColor": "rgba(0, 211, 255, 1)",
+                "name": "Annotations & Alerts",
+                "type": "dashboard"
+            }
+        ]
+    },
+    "editable": true,
+    "fiscalYearStartMonth": 0,
+    "graphTooltip": 0,
+    "id": 1921,
+    "links": [],
+    "panels": [
+        {
+            "collapsed": false,
+            "gridPos": {
+                "h": 1,
+                "w": 24,
+                "x": 0,
+                "y": 0
+            },
+            "id": 100,
+            "title": "📊 週巡檢摘要",
+            "type": "row"
+        },
+        {
+            "datasource": {
+                "type": "mysql",
+                "uid": "f309677b-1ba0-4e8c-93b1-863abc193f8c"
+            },
+            "description": "剩餘可用 IP 不足 10% 的網段",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "red",
+                        "mode": "fixed"
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            },
+                            {
+                                "color": "yellow",
+                                "value": 3
+                            },
+                            {
+                                "color": "red",
+                                "value": 5
+                            }
+                        ]
+                    }
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 4,
+                "w": 6,
+                "x": 0,
+                "y": 1
+            },
+            "id": 1,
+            "options": {
+                "colorMode": "background",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "auto",
+                "wideLayout": true
+            },
+            "pluginVersion": "10.4.19+security-01",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "mysql",
+                        "uid": "f309677b-1ba0-4e8c-93b1-863abc193f8c"
+                    },
+                    "format": "table",
+                    "rawSql": "SELECT COUNT(*) AS low_capacity_count\nFROM (\n  SELECT\n    s.id,\n    ROUND(\n      (POW(2, 32 - CAST(s.mask AS UNSIGNED)) - 2 - SUM(CASE\n        WHEN a.id IS NULL THEN 0\n        WHEN IFNULL(a.custom_DHCP_pool_range, 0) != 1 THEN 1\n        WHEN a.custom_DHCP_pool_range = 1\n          AND a.lastSeen IS NOT NULL\n          AND a.lastSeen > '1970-01-02'\n          AND a.lastSeen >= CONVERT_TZ(NOW(), @@session.time_zone, '+08:00') - INTERVAL 24 HOUR\n          AND DAYOFWEEK(CONVERT_TZ(NOW(), @@session.time_zone, '+08:00')) BETWEEN 2 AND 6\n        THEN 1\n        ELSE 0\n      END))\n      / (POW(2, 32 - CAST(s.mask AS UNSIGNED)) - 2) * 100, 1\n    ) AS free_pct\n  FROM subnets s\n  LEFT JOIN ipaddresses a ON s.id = a.subnetId\n  WHERE s.isFolder = 0\n    AND CAST(s.mask AS UNSIGNED) < 31\n    AND CAST(s.mask AS UNSIGNED) > 0\n    AND s.sectionId NOT IN (SELECT id FROM sections WHERE name = 'TC_YueyuenHotel')\nGROUP BY s.id, s.mask\n  HAVING free_pct < 10\n) sub",
+                    "refId": "A"
+                }
+            ],
+            "title": "低容量網段數量（<10%）",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "mysql",
+                "uid": "f309677b-1ba0-4e8c-93b1-863abc193f8c"
+            },
+            "description": "Active 但缺少 Hostname 或 Owner 的 IP（autodiscovered 有 7 天寬限期，排除 Guest 網段）",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "orange",
+                        "mode": "fixed"
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            },
+                            {
+                                "color": "yellow",
+                                "value": 50
+                            },
+                            {
+                                "color": "orange",
+                                "value": 100
+                            },
+                            {
+                                "color": "red",
+                                "value": 200
+                            }
+                        ]
+                    }
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 4,
+                "w": 6,
+                "x": 6,
+                "y": 1
+            },
+            "id": 2,
+            "options": {
+                "colorMode": "background",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "auto",
+                "wideLayout": true
+            },
+            "pluginVersion": "10.4.19+security-01",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "mysql",
+                        "uid": "f309677b-1ba0-4e8c-93b1-863abc193f8c"
+                    },
+                    "format": "table",
+                    "rawSql": "SELECT COUNT(*) AS non_compliant\nFROM ipaddresses a\nJOIN subnets s ON a.subnetId = s.id\nJOIN sections sec ON s.sectionId = sec.id\nWHERE a.state = 2\n  AND a.is_gateway != 1\n  AND (a.custom_DHCP_pool_range IS NULL OR a.custom_DHCP_pool_range != 1)\n  AND ((a.hostname IS NULL OR a.hostname = '') OR (a.owner IS NULL OR a.owner = ''))\n  AND (\n    IFNULL(a.description, '') != '-- autodiscovered --'\n    OR (a.lastSeen IS NULL OR a.lastSeen < NOW() - INTERVAL 7 DAY)\n  )\n  AND sec.name != 'TC_YueyuenHotel'\n  AND (s.description NOT LIKE '%Guest%' OR s.description IS NULL)",
+                    "refId": "A"
+                }
+            ],
+            "title": "不合規 IP 總數",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "mysql",
+                "uid": "f309677b-1ba0-4e8c-93b1-863abc193f8c"
+            },
+            "description": "過去 7 天靜態 IP 的 MAC / Hostname / Owner 真實變更次數",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "blue",
+                        "mode": "fixed"
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "blue",
+                                "value": null
+                            }
+                        ]
+                    }
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 4,
+                "w": 6,
+                "x": 12,
+                "y": 1
+            },
+            "id": 3,
+            "options": {
+                "colorMode": "background",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "auto",
+                "wideLayout": true
+            },
+            "pluginVersion": "10.4.19+security-01",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "mysql",
+                        "uid": "f309677b-1ba0-4e8c-93b1-863abc193f8c"
+                    },
+                    "format": "table",
+                    "rawSql": "SELECT COUNT(*) AS weekly_changes\nFROM grafana_ip_changes\nWHERE detected_at >= NOW() - INTERVAL 7 DAY",
+                    "refId": "A"
+                }
+            ],
+            "title": "本週 IP 異動數",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "mysql",
+                "uid": "f309677b-1ba0-4e8c-93b1-863abc193f8c"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "super-light-blue",
+                        "mode": "fixed"
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "super-light-blue",
+                                "value": null
+                            }
+                        ]
+                    }
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 4,
+                "w": 6,
+                "x": 18,
+                "y": 1
+            },
+            "id": 4,
+            "options": {
+                "colorMode": "background",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "auto",
+                "wideLayout": true
+            },
+            "pluginVersion": "10.4.19+security-01",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "mysql",
+                        "uid": "f309677b-1ba0-4e8c-93b1-863abc193f8c"
+                    },
+                    "format": "table",
+                    "rawSql": "SELECT COUNT(*) AS total_subnets\nFROM subnets\nWHERE isFolder = 0\n  AND CAST(mask AS UNSIGNED) < 31\n  AND CAST(mask AS UNSIGNED) > 0\n  AND sectionId NOT IN (SELECT id FROM sections WHERE name = 'TC_YueyuenHotel')",
+                    "refId": "A"
+                }
+            ],
+            "title": "總監控網段數",
+            "type": "stat"
+        },
+        {
+            "collapsed": false,
+            "gridPos": {
+                "h": 1,
+                "w": 24,
+                "x": 0,
+                "y": 5
+            },
+            "id": 101,
+            "title": "🟡 網段健康度 - 剩餘可用 IP < 10%",
+            "type": "row"
+        },
+        {
+            "datasource": {
+                "type": "mysql",
+                "uid": "f309677b-1ba0-4e8c-93b1-863abc193f8c"
+            },
+            "description": "剩餘可用 IP 不足 10% 的網段清單",
+            "fieldConfig": {
+                "defaults": {
+                    "custom": {
+                        "align": "auto",
+                        "cellOptions": {
+                            "type": "auto"
+                        },
+                        "filterable": true,
+                        "inspect": false
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            },
+                            {
+                                "color": "red",
+                                "value": 80
+                            }
+                        ]
+                    }
+                },
+                "overrides": [
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Usage %"
+                        },
+                        "properties": [
+                            {
+                                "id": "custom.cellOptions",
+                                "value": {
+                                    "type": "color-background"
+                                }
+                            },
+                            {
+                                "id": "thresholds",
+                                "value": {
+                                    "mode": "absolute",
+                                    "steps": [
+                                        {
+                                            "color": "yellow",
+                                            "value": null
+                                        },
+                                        {
+                                            "color": "orange",
+                                            "value": 95
+                                        },
+                                        {
+                                            "color": "red",
+                                            "value": 99
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Free IPs"
+                        },
+                        "properties": [
+                            {
+                                "id": "custom.cellOptions",
+                                "value": {
+                                    "type": "color-text"
+                                }
+                            },
+                            {
+                                "id": "thresholds",
+                                "value": {
+                                    "mode": "absolute",
+                                    "steps": [
+                                        {
+                                            "color": "red",
+                                            "value": null
+                                        },
+                                        {
+                                            "color": "orange",
+                                            "value": 5
+                                        },
+                                        {
+                                            "color": "yellow",
+                                            "value": 10
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 24,
+                "x": 0,
+                "y": 6
+            },
+            "id": 10,
+            "options": {
+                "cellHeight": "sm",
+                "enablePagination": true,
+                "footer": {
+                    "countRows": true,
+                    "fields": "",
+                    "reducer": [
+                        "count"
+                    ],
+                    "show": true
+                },
+                "showHeader": true,
+                "sortBy": [
+                    {
+                        "desc": false,
+                        "displayName": "Free %"
+                    }
+                ]
+            },
+            "pluginVersion": "10.4.19+security-01",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "mysql",
+                        "uid": "f309677b-1ba0-4e8c-93b1-863abc193f8c"
+                    },
+                    "format": "table",
+                    "rawSql": "SELECT\n  CONCAT(INET_NTOA(s.subnet), '/', s.mask) AS 'Subnet CIDR',\n  s.description AS 'Description',\n  sec.name AS 'Section',\n  SUM(CASE\n    WHEN a.id IS NULL THEN 0\n    WHEN IFNULL(a.custom_DHCP_pool_range, 0) != 1 THEN 1\n    ELSE 0\n  END) AS 'Static IPs',\n  SUM(CASE\n    WHEN a.custom_DHCP_pool_range = 1\n      AND a.lastSeen IS NOT NULL\n      AND a.lastSeen > '1970-01-02'\n      AND a.lastSeen >= CONVERT_TZ(NOW(), @@session.time_zone, '+08:00') - INTERVAL 24 HOUR\n      AND DAYOFWEEK(CONVERT_TZ(NOW(), @@session.time_zone, '+08:00')) BETWEEN 2 AND 6\n    THEN 1 ELSE 0\n  END) AS 'Active DHCP',\n  SUM(CASE\n    WHEN a.id IS NULL THEN 0\n    WHEN IFNULL(a.custom_DHCP_pool_range, 0) != 1 THEN 1\n    WHEN a.custom_DHCP_pool_range = 1\n      AND a.lastSeen IS NOT NULL\n      AND a.lastSeen > '1970-01-02'\n      AND a.lastSeen >= CONVERT_TZ(NOW(), @@session.time_zone, '+08:00') - INTERVAL 24 HOUR\n      AND DAYOFWEEK(CONVERT_TZ(NOW(), @@session.time_zone, '+08:00')) BETWEEN 2 AND 6\n    THEN 1\n    ELSE 0\n  END) AS 'Used IPs',\n  CAST(POW(2, 32 - CAST(s.mask AS UNSIGNED)) - 2 AS UNSIGNED) AS 'Total Hosts',\n  CAST(POW(2, 32 - CAST(s.mask AS UNSIGNED)) - 2 AS SIGNED) - CAST(SUM(CASE\n    WHEN a.id IS NULL THEN 0\n    WHEN IFNULL(a.custom_DHCP_pool_range, 0) != 1 THEN 1\n    WHEN a.custom_DHCP_pool_range = 1\n      AND a.lastSeen IS NOT NULL\n      AND a.lastSeen > '1970-01-02'\n      AND a.lastSeen >= CONVERT_TZ(NOW(), @@session.time_zone, '+08:00') - INTERVAL 24 HOUR\n      AND DAYOFWEEK(CONVERT_TZ(NOW(), @@session.time_zone, '+08:00')) BETWEEN 2 AND 6\n    THEN 1\n    ELSE 0\n  END) AS SIGNED) AS 'Free IPs',\n  ROUND(\n    SUM(CASE\n      WHEN a.id IS NULL THEN 0\n      WHEN IFNULL(a.custom_DHCP_pool_range, 0) != 1 THEN 1\n      WHEN a.custom_DHCP_pool_range = 1\n        AND a.lastSeen IS NOT NULL\n        AND a.lastSeen > '1970-01-02'\n        AND a.lastSeen >= CONVERT_TZ(NOW(), @@session.time_zone, '+08:00') - INTERVAL 24 HOUR\n        AND DAYOFWEEK(CONVERT_TZ(NOW(), @@session.time_zone, '+08:00')) BETWEEN 2 AND 6\n      THEN 1\n      ELSE 0\n    END) / (POW(2, 32 - CAST(s.mask AS UNSIGNED)) - 2) * 100, 1\n  ) AS 'Usage %',\n  ROUND(\n    (POW(2, 32 - CAST(s.mask AS UNSIGNED)) - 2 - SUM(CASE\n      WHEN a.id IS NULL THEN 0\n      WHEN IFNULL(a.custom_DHCP_pool_range, 0) != 1 THEN 1\n      WHEN a.custom_DHCP_pool_range = 1\n        AND a.lastSeen IS NOT NULL\n        AND a.lastSeen > '1970-01-02'\n        AND a.lastSeen >= CONVERT_TZ(NOW(), @@session.time_zone, '+08:00') - INTERVAL 24 HOUR\n        AND DAYOFWEEK(CONVERT_TZ(NOW(), @@session.time_zone, '+08:00')) BETWEEN 2 AND 6\n      THEN 1\n      ELSE 0\n    END))\n    / (POW(2, 32 - CAST(s.mask AS UNSIGNED)) - 2) * 100, 1\n  ) AS 'Free %'\nFROM subnets s\nLEFT JOIN ipaddresses a ON s.id = a.subnetId\nLEFT JOIN sections sec ON s.sectionId = sec.id\nWHERE s.isFolder = 0\n  AND CAST(s.mask AS UNSIGNED) < 31\n  AND CAST(s.mask AS UNSIGNED) > 0\n  AND sec.name != 'TC_YueyuenHotel'\nGROUP BY s.id, s.subnet, s.mask, s.description, sec.name\nHAVING `Free %` < 10\nORDER BY `Free %` ASC",
+                    "refId": "A"
+                }
+            ],
+            "title": "低容量網段明細",
+            "type": "table"
+        },
+        {
+            "collapsed": false,
+            "gridPos": {
+                "h": 1,
+                "w": 24,
+                "x": 0,
+                "y": 14
+            },
+            "id": 102,
+            "title": "🔵 資料同步健康度 - 不合規 IP",
+            "type": "row"
+        },
+        {
+            "datasource": {
+                "type": "mysql",
+                "uid": "f309677b-1ba0-4e8c-93b1-863abc193f8c"
+            },
+            "description": "各網段中缺少 Hostname 或 Owner 的 Active IP 數量（排除 Gateway、DHCP Pool、Guest 網段，autodiscovered 有 7 天寬限期）",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "continuous-YlRd"
+                    },
+                    "mappings": [],
+                    "min": 0,
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "yellow",
+                                "value": null
+                            },
+                            {
+                                "color": "orange",
+                                "value": 10
+                            },
+                            {
+                                "color": "red",
+                                "value": 30
+                            }
+                        ]
+                    }
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 12,
+                "w": 24,
+                "x": 0,
+                "y": 15
+            },
+            "id": 20,
+            "options": {
+                "displayMode": "lcd",
+                "maxVizHeight": 300,
+                "minVizHeight": 10,
+                "minVizWidth": 0,
+                "namePlacement": "auto",
+                "orientation": "horizontal",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "/^non_compliant_count$/",
+                    "values": true
+                },
+                "showUnfilled": true,
+                "sizing": "auto",
+                "valueMode": "color"
+            },
+            "pluginVersion": "10.4.19+security-01",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "mysql",
+                        "uid": "f309677b-1ba0-4e8c-93b1-863abc193f8c"
+                    },
+                    "format": "table",
+                    "rawSql": "SELECT\n  CONCAT(INET_NTOA(s.subnet), '/', s.mask) AS subnet,\n  COUNT(*) AS non_compliant_count\nFROM ipaddresses a\nJOIN subnets s ON a.subnetId = s.id\nJOIN sections sec ON s.sectionId = sec.id\nWHERE a.state = 2\n  AND a.is_gateway != 1\n  AND (a.custom_DHCP_pool_range IS NULL OR a.custom_DHCP_pool_range != 1)\n  AND ((a.hostname IS NULL OR a.hostname = '') OR (a.owner IS NULL OR a.owner = ''))\n  AND (\n    IFNULL(a.description, '') != '-- autodiscovered --'\n    OR (a.lastSeen IS NULL OR a.lastSeen < NOW() - INTERVAL 7 DAY)\n  )\n  AND sec.name != 'TC_YueyuenHotel'\n  AND (s.description NOT LIKE '%Guest%' OR s.description IS NULL)\nGROUP BY s.id, s.subnet, s.mask\nORDER BY non_compliant_count DESC, s.subnet DESC\nLIMIT 5",
+                    "refId": "A"
+                }
+            ],
+            "title": "不合規 IP 分佈（按網段 TOP 5）",
+            "type": "bargauge"
+        },
+        {
+            "datasource": {
+                "type": "mysql",
+                "uid": "f309677b-1ba0-4e8c-93b1-863abc193f8c"
+            },
+            "description": "Active 狀態但缺少 Hostname 或 Owner 的 IP（排除 Gateway、DHCP Pool、Guest 網段，autodiscovered 有 7 天寬限期）",
+            "fieldConfig": {
+                "defaults": {
+                    "custom": {
+                        "align": "auto",
+                        "cellOptions": {
+                            "type": "auto"
+                        },
+                        "filterable": true,
+                        "inspect": false
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            },
+                            {
+                                "color": "red",
+                                "value": 80
+                            }
+                        ]
+                    }
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 9,
+                "w": 24,
+                "x": 0,
+                "y": 27
+            },
+            "id": 21,
+            "options": {
+                "cellHeight": "sm",
+                "enablePagination": true,
+                "footer": {
+                    "countRows": true,
+                    "enablePagination": true,
+                    "fields": "",
+                    "reducer": [
+                        "count"
+                    ],
+                    "show": false
+                },
+                "showHeader": true,
+                "sortBy": [
+                    {
+                        "desc": false,
+                        "displayName": "Section"
+                    }
+                ]
+            },
+            "pluginVersion": "10.4.19+security-01",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "mysql",
+                        "uid": "f309677b-1ba0-4e8c-93b1-863abc193f8c"
+                    },
+                    "editorMode": "code",
+                    "format": "table",
+                    "rawQuery": true,
+                    "rawSql": "SELECT\n  INET_NTOA(a.ip_addr) AS 'IP',\n  IFNULL(NULLIF(a.hostname, ''), '(空值)') AS 'Hostname',\n  IFNULL(NULLIF(a.description, ''), '(空值)') AS 'Description',\n  IFNULL(a.mac, '(無)') AS 'MAC',\n  IFNULL(a.owner, '(未指定)') AS 'Owner',\n  CONVERT_TZ(a.lastSeen, '+08:00', '+00:00') AS 'Last Seen',\n  CONCAT(INET_NTOA(s.subnet), '/', s.mask) AS 'Subnet',\n  s.description AS 'Subnet Desc',\n  sec.name AS 'Section'\nFROM ipaddresses a\nJOIN subnets s ON a.subnetId = s.id\nLEFT JOIN sections sec ON s.sectionId = sec.id\nJOIN (\n  SELECT top_s.id AS sid, COUNT(*) AS non_compliant_count\n  FROM ipaddresses top_a\n  JOIN subnets top_s ON top_a.subnetId = top_s.id\n  JOIN sections top_sec ON top_s.sectionId = top_sec.id\n  WHERE top_a.state = 2\n    AND top_a.is_gateway != 1\n    AND (top_a.custom_DHCP_pool_range IS NULL OR top_a.custom_DHCP_pool_range != 1)\n    AND ((top_a.hostname IS NULL OR top_a.hostname = '') OR (top_a.owner IS NULL OR top_a.owner = ''))\n    AND (\n      IFNULL(top_a.description, '') != '-- autodiscovered --'\n      OR (top_a.lastSeen IS NULL OR top_a.lastSeen < NOW() - INTERVAL 7 DAY)\n    )\n    AND top_sec.name != 'TC_YueyuenHotel'\n    AND (top_s.description NOT LIKE '%Guest%' OR top_s.description IS NULL)\n  GROUP BY top_s.id, top_s.subnet, top_s.mask\n  ORDER BY non_compliant_count DESC, top_s.subnet DESC\n  LIMIT 5\n) AS top5 ON s.id = top5.sid\nWHERE a.state = 2\n  AND a.is_gateway != 1\n  AND (a.custom_DHCP_pool_range IS NULL OR a.custom_DHCP_pool_range != 1)\n  AND ((a.hostname IS NULL OR a.hostname = '') OR (a.owner IS NULL OR a.owner = ''))\n  AND (\n    IFNULL(a.description, '') != '-- autodiscovered --'\n    OR (a.lastSeen IS NULL OR a.lastSeen < NOW() - INTERVAL 7 DAY)\n  )\n  AND sec.name != 'TC_YueyuenHotel'\n  AND (s.description NOT LIKE '%Guest%' OR s.description IS NULL)\nORDER BY top5.non_compliant_count DESC, s.subnet DESC, a.ip_addr ASC",
+                    "refId": "A",
+                    "sql": {
+                        "columns": [
+                            {
+                                "parameters": [],
+                                "type": "function"
+                            }
+                        ],
+                        "groupBy": [
+                            {
+                                "property": {
+                                    "type": "string"
+                                },
+                                "type": "groupBy"
+                            }
+                        ],
+                        "limit": 50
+                    }
+                }
+            ],
+            "title": "不合規 IP 詳細清單",
+            "type": "table"
+        },
+        {
+            "collapsed": false,
+            "gridPos": {
+                "h": 1,
+                "w": 24,
+                "x": 0,
+                "y": 36
+            },
+            "id": 103,
+            "title": "📋 本週 IP 異動明細",
+            "type": "row"
+        },
+        {
+            "datasource": {
+                "type": "mysql",
+                "uid": "f309677b-1ba0-4e8c-93b1-863abc193f8c"
+            },
+            "description": "偵測靜態 IP 的 MAC / Hostname / Owner 實際變更（排除自動掃描雜訊）",
+            "fieldConfig": {
+                "defaults": {
+                    "custom": {
+                        "align": "auto",
+                        "cellOptions": {
+                            "type": "auto"
+                        },
+                        "filterable": true,
+                        "inspect": false
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            },
+                            {
+                                "color": "red",
+                                "value": 80
+                            }
+                        ]
+                    }
+                },
+                "overrides": [
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Changed Field"
+                        },
+                        "properties": [
+                            {
+                                "id": "custom.width",
+                                "value": 130
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Old Value"
+                        },
+                        "properties": [
+                            {
+                                "id": "custom.cellOptions",
+                                "value": {
+                                    "type": "color-text"
+                                }
+                            },
+                            {
+                                "id": "color",
+                                "value": {
+                                    "fixedColor": "red",
+                                    "mode": "fixed"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "New Value"
+                        },
+                        "properties": [
+                            {
+                                "id": "custom.cellOptions",
+                                "value": {
+                                    "type": "color-text"
+                                }
+                            },
+                            {
+                                "id": "color",
+                                "value": {
+                                    "fixedColor": "green",
+                                    "mode": "fixed"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            "gridPos": {
+                "h": 9,
+                "w": 24,
+                "x": 0,
+                "y": 37
+            },
+            "id": 30,
+            "options": {
+                "cellHeight": "sm",
+                "enablePagination": true,
+                "footer": {
+                    "countRows": true,
+                    "enablePagination": true,
+                    "fields": "",
+                    "reducer": [
+                        "count"
+                    ],
+                    "show": false
+                },
+                "showHeader": true,
+                "sortBy": [
+                    {
+                        "desc": true,
+                        "displayName": "Detected"
+                    }
+                ]
+            },
+            "pluginVersion": "10.4.19+security-01",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "mysql",
+                        "uid": "f309677b-1ba0-4e8c-93b1-863abc193f8c"
+                    },
+                    "editorMode": "code",
+                    "format": "table",
+                    "rawQuery": true,
+                    "rawSql": "SELECT\n  c.detected_at AS 'Detected',\n  c.ip_display AS 'IP',\n  c.changed_field AS 'Changed Field',\n  c.old_value AS 'Old Value',\n  c.new_value AS 'New Value',\n  c.subnet_cidr AS 'Subnet',\n  c.subnet_desc AS 'Subnet Desc',\n  c.section_name AS 'Section'\nFROM grafana_ip_changes c\nWHERE c.detected_at >= NOW() - INTERVAL 7 DAY\n  AND (c.subnet_desc NOT LIKE '%Guest%' OR c.subnet_desc IS NULL)\nORDER BY c.detected_at DESC\nLIMIT 200;\n",
+                    "refId": "A",
+                    "sql": {
+                        "columns": [
+                            {
+                                "parameters": [],
+                                "type": "function"
+                            }
+                        ],
+                        "groupBy": [
+                            {
+                                "property": {
+                                    "type": "string"
+                                },
+                                "type": "groupBy"
+                            }
+                        ],
+                        "limit": 50
+                    }
+                }
+            ],
+            "title": "過去 7 天靜態 IP 欄位變更紀錄",
+            "type": "table"
+        },
+        {
+            "collapsed": false,
+            "gridPos": {
+                "h": 1,
+                "w": 24,
+                "x": 0,
+                "y": 46
+            },
+            "id": 104,
+            "title": "📡 DHCP Pool 工作日使用率（平均 <20% OR >80%）",
+            "type": "row"
+        },
+        {
+            "datasource": {
+                "type": "mysql",
+                "uid": "f309677b-1ba0-4e8c-93b1-863abc193f8c"
+            },
+            "description": "各網段 DHCP Pool IP 在過去一週工作日（週一~五）的平均使用率，僅顯示 <20% OR >80% 的網段",
+            "fieldConfig": {
+                "defaults": {
+                    "custom": {
+                        "align": "auto",
+                        "cellOptions": {
+                            "type": "auto"
+                        },
+                        "filterable": true,
+                        "inspect": false
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            },
+                            {
+                                "color": "red",
+                                "value": 80
+                            }
+                        ]
+                    }
+                },
+                "overrides": [
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Avg Usage %"
+                        },
+                        "properties": [
+                            {
+                                "id": "custom.cellOptions",
+                                "value": {
+                                    "type": "color-background"
+                                }
+                            },
+                            {
+                                "id": "thresholds",
+                                "value": {
+                                    "mode": "absolute",
+                                    "steps": [
+                                        {
+                                            "color": "orange",
+                                            "value": null
+                                        },
+                                        {
+                                            "color": "red",
+                                            "value": 95
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "工作日天數"
+                        },
+                        "properties": [
+                            {
+                                "id": "custom.hidden",
+                                "value": true
+                            }
+                        ]
+                    }
+                ]
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 24,
+                "x": 0,
+                "y": 47
+            },
+            "id": 40,
+            "options": {
+                "cellHeight": "sm",
+                "enablePagination": false,
+                "footer": {
+                    "countRows": false,
+                    "fields": "",
+                    "reducer": [
+                        "sum"
+                    ],
+                    "show": false
+                },
+                "showHeader": true,
+                "sortBy": [
+                    {
+                        "desc": true,
+                        "displayName": "Avg Usage %"
+                    }
+                ]
+            },
+            "pluginVersion": "10.4.19+security-01",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "mysql",
+                        "uid": "f309677b-1ba0-4e8c-93b1-863abc193f8c"
+                    },
+                    "editorMode": "code",
+                    "format": "table",
+                    "rawQuery": true,
+                    "rawSql": "SELECT\n  CONCAT(INET_NTOA(s.subnet), '/', s.mask) AS 'Subnet CIDR',\n  s.description AS 'Description',\n  sec.name AS 'Section',\n  COUNT(*) AS 'DHCP Pool 總數',\n  SUM(CASE\n    WHEN a.lastSeen >= NOW() - INTERVAL 7 DAY\n      AND DAYOFWEEK(a.lastSeen) BETWEEN 2 AND 6\n    THEN 1 ELSE 0\n  END) AS '工作日活躍數',\n  (\n    SELECT COUNT(DISTINCT DATE(d.dt))\n    FROM (\n      SELECT CURDATE() - INTERVAL seq DAY AS dt\n      FROM (\n        SELECT 0 AS seq UNION SELECT 1 UNION SELECT 2 UNION SELECT 3\n        UNION SELECT 4 UNION SELECT 5 UNION SELECT 6\n      ) nums\n    ) d\n    WHERE DAYOFWEEK(d.dt) BETWEEN 2 AND 6\n      AND d.dt <= CURDATE()\n  ) AS '工作日天數',\n  ROUND(\n    SUM(CASE\n      WHEN a.lastSeen >= NOW() - INTERVAL 7 DAY\n        AND DAYOFWEEK(a.lastSeen) BETWEEN 2 AND 6\n      THEN 1 ELSE 0\n    END)\n    / COUNT(*) * 100, 1\n  ) AS 'Avg Usage %'\nFROM ipaddresses a\nJOIN subnets s ON a.subnetId = s.id\nLEFT JOIN sections sec ON s.sectionId = sec.id\nWHERE a.custom_DHCP_pool_range = 1\n  AND sec.name != 'TC_YueyuenHotel'\nGROUP BY s.id, s.subnet, s.mask, s.description, sec.name\nHAVING `Avg Usage %` < 20 OR `Avg Usage %` > 80\nORDER BY `Avg Usage %` DESC\nLIMIT 5",
+                    "refId": "A",
+                    "sql": {
+                        "columns": [
+                            {
+                                "parameters": [],
+                                "type": "function"
+                            }
+                        ],
+                        "groupBy": [
+                            {
+                                "property": {
+                                    "type": "string"
+                                },
+                                "type": "groupBy"
+                            }
+                        ],
+                        "limit": 50
+                    }
+                }
+            ],
+            "title": "DHCP Pool 工作日平均使用率 TOP 5",
+            "type": "table"
+        }
+    ],
+    "refresh": "",
+    "schemaVersion": 39,
+    "tags": [
+        "phpIPAM",
+        "weekly",
+        "巡檢"
+    ],
+    "templating": {
+        "list": []
+    },
+    "time": {
+        "from": "now-7d",
+        "to": "now"
+    },
+    "timepicker": {},
+    "timezone": "browser",
+    "title": "phpIPAM 週巡檢 Dashboard",
+    "uid": "bffh0qe9v64n4d",
+    "version": 9,
+    "weekStart": ""
+}

@@ -1,0 +1,7 @@
+extract_output.txt
+*.png
+*.jpg
+reports/output/
+__pycache__/
+*.pyc
+.env

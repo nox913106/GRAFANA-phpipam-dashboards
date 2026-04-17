@@ -1,0 +1,284 @@
+{
+  "report_date": "2026-04-17",
+  "time_range": "2026-04-16 08:00 ~ 2026-04-17 08:00",
+  "generated_at": "2026-04-17 08:05:12",
+
+  "overview": {
+    "total_ip": 4521,
+    "active_ip": 2834,
+    "dhcp_pool_ip": 1205
+  },
+
+  "site_subnets": [
+    {"site": "TC_HQ",    "Server": 5, "IIOT": 3, "OA": 8, "Voice": 2, "Guest": 1, "Others": 2, "Total": 21},
+    {"site": "CH_HQ2",   "Server": 4, "IIOT": 2, "OA": 6, "Voice": 2, "Guest": 1, "Others": 1, "Total": 16},
+    {"site": "TP_XinYi", "Server": 2, "IIOT": 1, "OA": 4, "Voice": 1, "Guest": 0, "Others": 1, "Total":  9},
+    {"site": "TC_UAIC",  "Server": 1, "IIOT": 2, "OA": 3, "Voice": 1, "Guest": 0, "Others": 0, "Total":  7},
+    {"site": "CH_PGT",   "Server": 1, "IIOT": 1, "OA": 2, "Voice": 1, "Guest": 0, "Others": 0, "Total":  5}
+  ],
+
+  "site_ip_capacity": [
+    {"site": "TC_HQ",    "Server": 510,  "IIOT": 254,  "OA": 2044, "Voice": 254, "Guest": 254, "Others": 508, "Total": 3824},
+    {"site": "CH_HQ2",   "Server": 510,  "IIOT": 254,  "OA": 1022, "Voice": 254, "Guest": 254, "Others": 254, "Total": 2548},
+    {"site": "TP_XinYi", "Server": 254,  "IIOT": 126,  "OA":  510, "Voice": 126, "Guest":   0, "Others": 254, "Total": 1270},
+    {"site": "TC_UAIC",  "Server": 126,  "IIOT": 254,  "OA":  254, "Voice": 126, "Guest":   0, "Others":   0, "Total":  760},
+    {"site": "CH_PGT",   "Server": 126,  "IIOT": 126,  "OA":  254, "Voice": 126, "Guest":   0, "Others":   0, "Total":  632}
+  ],
+
+  "changes": {
+    "total": 23,
+    "modify": 18,
+    "deleted": 3,
+    "add": 2,
+    "operators": 4
+  },
+
+  "change_type_dist": [
+    {"metric": "MODIFY",  "value": 18},
+    {"metric": "ADD",     "value":  2},
+    {"metric": "DELETED", "value":  3}
+  ],
+
+  "operator_ranking": [
+    {"metric": "admin",       "value": 12},
+    {"metric": "john.wang",   "value":  7},
+    {"metric": "mary.chen",   "value":  3},
+    {"metric": "(系統掃描)",  "value":  1}
+  ],
+
+  "section_heat": [
+    {"metric": "TC_HQ",    "value": 10},
+    {"metric": "CH_HQ2",   "value":  7},
+    {"metric": "TP_XinYi", "value":  4},
+    {"metric": "TC_UAIC",  "value":  2}
+  ],
+
+  "hot_ips": [
+    {"ip": "172.23.174.50",  "change_times": 5},
+    {"ip": "172.16.5.88",    "change_times": 4},
+    {"ip": "172.23.13.120",  "change_times": 3},
+    {"ip": "172.23.199.45",  "change_times": 2},
+    {"ip": "172.23.110.77",  "change_times": 2}
+  ],
+
+  "subnet_changes": [
+    {"Subnet": "172.23.174.0/24",  "Desc": "TC-HQ_OA_ACC",    "Section": "TC_HQ",    "Mod":  8, "Del": 2, "Total": 10},
+    {"Subnet": "172.16.5.0/24",    "Desc": "CH-HQ2_OA_ACC",   "Section": "CH_HQ2",   "Mod":  5, "Del": 1, "Total":  6},
+    {"Subnet": "172.23.13.0/24",   "Desc": "CH-PGT_OA_ACC",   "Section": "CH_PGT",   "Mod":  3, "Del": 0, "Total":  3},
+    {"Subnet": "172.23.199.0/24",  "Desc": "TC-UAIC_OA",      "Section": "TC_UAIC",  "Mod":  2, "Del": 0, "Total":  2},
+    {"Subnet": "172.23.110.0/24",  "Desc": "TP-XinYi_OA_ACC", "Section": "TP_XinYi", "Mod":  2, "Del": 0, "Total":  2}
+  ],
+
+  "change_records": [
+    {
+      "Detected": "2026-04-17 07:52:03",
+      "IP": "172.23.174.50",
+      "Changed Field": "MODIFY",
+      "Old Value": "aa:bb:cc:11:22:33",
+      "New Value": "dd:ee:ff:44:55:66",
+      "Changed By": "admin",
+      "Subnet": "172.23.174.0/24",
+      "Subnet Desc": "TC-HQ_OA_ACC",
+      "Section": "TC_HQ"
+    },
+    {
+      "Detected": "2026-04-17 07:30:11",
+      "IP": "172.16.5.88",
+      "Changed Field": "MODIFY",
+      "Old Value": "SRV-OLD-01",
+      "New Value": "SRV-NEW-01",
+      "Changed By": "john.wang",
+      "Subnet": "172.16.5.0/24",
+      "Subnet Desc": "CH-HQ2_SRV",
+      "Section": "CH_HQ2"
+    },
+    {
+      "Detected": "2026-04-17 06:15:44",
+      "IP": "172.23.13.55",
+      "Changed Field": "DELETED",
+      "Old Value": "hostname=AP-CH-PGT-03, mac=11:22:33:44:55:66",
+      "New Value": "(已刪除)",
+      "Changed By": "mary.chen",
+      "Subnet": "172.23.13.0/24",
+      "Subnet Desc": "CH-PGT_OA_ACC",
+      "Section": "CH_PGT"
+    },
+    {
+      "Detected": "2026-04-17 05:48:22",
+      "IP": "172.23.174.200",
+      "Changed Field": "ADD",
+      "Old Value": "(不存在)",
+      "New Value": "hostname=PC-TC-HQ-200, mac=ab:cd:ef:12:34:56, owner=Mary",
+      "Changed By": "admin",
+      "Subnet": "172.23.174.0/24",
+      "Subnet Desc": "TC-HQ_OA_ACC",
+      "Section": "TC_HQ"
+    },
+    {
+      "Detected": "2026-04-17 03:22:10",
+      "IP": "172.23.199.45",
+      "Changed Field": "MODIFY",
+      "Old Value": "John Chen",
+      "New Value": "Mary Lin",
+      "Changed By": "john.wang",
+      "Subnet": "172.23.199.0/24",
+      "Subnet Desc": "TC-UAIC_OA",
+      "Section": "TC_UAIC"
+    }
+  ],
+
+  "high_usage_subnets_top5": [
+    {"subnet": "172.23.174.0/24",  "usage_pct": 95.3},
+    {"subnet": "172.16.5.128/25",  "usage_pct": 92.1},
+    {"subnet": "172.23.110.0/25",  "usage_pct": 88.5},
+    {"subnet": "172.23.13.0/24",   "usage_pct": 85.2},
+    {"subnet": "172.23.199.0/25",  "usage_pct": 83.7}
+  ],
+
+  "high_usage_detail": [
+    {
+      "Subnet CIDR": "172.23.174.0/24",
+      "Description": "TC-HQ_OA_ACC",
+      "Section": "TC_HQ",
+      "Used IPs": 242,
+      "Total Hosts": 254,
+      "Free IPs": 12,
+      "Usage %": 95.3
+    },
+    {
+      "Subnet CIDR": "172.16.5.128/25",
+      "Description": "CH-HQ2_OA_ACC",
+      "Section": "CH_HQ2",
+      "Used IPs": 117,
+      "Total Hosts": 126,
+      "Free IPs": 9,
+      "Usage %": 92.1
+    },
+    {
+      "Subnet CIDR": "172.23.110.0/25",
+      "Description": "TP-XinYi_OA_ACC",
+      "Section": "TP_XinYi",
+      "Used IPs": 112,
+      "Total Hosts": 126,
+      "Free IPs": 14,
+      "Usage %": 88.5
+    },
+    {
+      "Subnet CIDR": "172.23.13.0/24",
+      "Description": "CH-PGT_OA_ACC",
+      "Section": "CH_PGT",
+      "Used IPs": 216,
+      "Total Hosts": 254,
+      "Free IPs": 38,
+      "Usage %": 85.2
+    },
+    {
+      "Subnet CIDR": "172.23.199.0/25",
+      "Description": "TC-UAIC_OA",
+      "Section": "TC_UAIC",
+      "Used IPs": 106,
+      "Total Hosts": 126,
+      "Free IPs": 20,
+      "Usage %": 83.7
+    }
+  ],
+
+  "dhcp_avg_latency": [
+    {"metric": "DHCP-CH-HQ2",  "avg_latency": 1.85},
+    {"metric": "DHCP-CH-PGT",  "avg_latency": 2.12},
+    {"metric": "DHCP-TC-HQ",   "avg_latency": 1.43},
+    {"metric": "DHCP-TC-UAIC", "avg_latency": 3.27},
+    {"metric": "DHCP-TP-XY",   "avg_latency": 12.54},
+    {"metric": "DHCP-TP-BaoYu","avg_latency": 8.93},
+    {"metric": "DHCP-TC-CBD",  "avg_latency": 2.68}
+  ],
+
+  "dhcp_stats": [
+    {
+      "DHCP Server": "DHCP-TP-XY",
+      "IP": "172.23.110.1",
+      "Avg (ms)": 12.54,
+      "Min (ms)": 0.91,
+      "Max (ms)": 45.32,
+      "Jitter (ms)": 44.41,
+      "Uptime %": 99.9,
+      "Samples": 1440
+    },
+    {
+      "DHCP Server": "DHCP-TP-BaoYu",
+      "IP": "172.23.94.254",
+      "Avg (ms)": 8.93,
+      "Min (ms)": 1.02,
+      "Max (ms)": 28.15,
+      "Jitter (ms)": 27.13,
+      "Uptime %": 100.0,
+      "Samples": 1440
+    },
+    {
+      "DHCP Server": "DHCP-TC-UAIC",
+      "IP": "172.23.199.150",
+      "Avg (ms)": 3.27,
+      "Min (ms)": 0.75,
+      "Max (ms)": 9.88,
+      "Jitter (ms)": 9.13,
+      "Uptime %": 100.0,
+      "Samples": 1440
+    },
+    {
+      "DHCP Server": "DHCP-TC-CBD",
+      "IP": "172.23.127.169",
+      "Avg (ms)": 2.68,
+      "Min (ms)": 0.82,
+      "Max (ms)": 7.44,
+      "Jitter (ms)": 6.62,
+      "Uptime %": 100.0,
+      "Samples": 1440
+    },
+    {
+      "DHCP Server": "DHCP-CH-PGT",
+      "IP": "172.23.13.10",
+      "Avg (ms)": 2.12,
+      "Min (ms)": 0.68,
+      "Max (ms)": 5.91,
+      "Jitter (ms)": 5.23,
+      "Uptime %": 100.0,
+      "Samples": 1440
+    },
+    {
+      "DHCP Server": "DHCP-CH-HQ2",
+      "IP": "172.16.5.196",
+      "Avg (ms)": 1.85,
+      "Min (ms)": 0.55,
+      "Max (ms)": 4.72,
+      "Jitter (ms)": 4.17,
+      "Uptime %": 100.0,
+      "Samples": 1440
+    },
+    {
+      "DHCP Server": "DHCP-TC-HQ",
+      "IP": "172.23.174.5",
+      "Avg (ms)": 1.43,
+      "Min (ms)": 0.48,
+      "Max (ms)": 3.91,
+      "Jitter (ms)": 3.43,
+      "Uptime %": 100.0,
+      "Samples": 1440
+    }
+  ],
+
+  "ai_analysis": {
+    "summary": "2026-04-17 日巡檢整體正常。本日共偵測 23 筆 IP 異動（MODIFY 18 / ADD 2 / DELETED 3），由 4 名操作者執行，異動量屬正常範圍。需關注台中總部（TC_HQ）OA 網段使用率已達 95.3%，以及台北信義（TP_XY）DHCP Server 平均延遲偏高（12.54ms），其餘 6 台 DHCP Server 延遲均在 10ms 以內，可達率 100%。",
+    "focus_points": [
+      "172.23.174.50 在 24 小時內異動 5 次，為高頻異動 IP，建議確認是否設備更換或 DHCP 掃描雜訊",
+      "TC_HQ 的 OA 網段 172.23.174.0/24 使用率 95.3%，剩餘僅 12 個可用 IP",
+      "DHCP-TP-XY 平均延遲 12.54ms，最大值達 45.32ms，Jitter 偏高（44.41ms），需確認線路品質",
+      "本日發生 3 筆 DELETED，其中 CH_PGT 有 1 台 AP（AP-CH-PGT-03）被刪除，請確認是否正式下架"
+    ],
+    "suggestions": [
+      "TC_HQ_OA 網段建議在 2 週內規劃擴充至 /23（510 hosts），避免影響新設備上線",
+      "TP_XinYi DHCP Server 建議排查上游交換器端口或 WAN 線路，Jitter 過高可能導致 DHCP 租約異常",
+      "高頻異動 IP 172.23.174.50 建議設定靜態 MAC 綁定，減少 DHCP 動態掃描觸發的假異動",
+      "CH_HQ2_OA_ACC（172.16.5.128/25）使用率 92.1%，建議同步規劃擴充或回收已離線 IP"
+    ]
+  }
+}

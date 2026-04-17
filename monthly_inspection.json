@@ -1,0 +1,912 @@
+{
+    "annotations": {
+        "list": [
+            {
+                "builtIn": 1,
+                "datasource": {
+                    "type": "grafana",
+                    "uid": "-- Grafana --"
+                },
+                "enable": true,
+                "hide": true,
+                "iconColor": "rgba(0, 211, 255, 1)",
+                "name": "Annotations & Alerts",
+                "type": "dashboard"
+            }
+        ]
+    },
+    "editable": true,
+    "fiscalYearStartMonth": 0,
+    "graphTooltip": 0,
+    "id": 1922,
+    "links": [],
+    "panels": [
+        {
+            "collapsed": false,
+            "gridPos": {
+                "h": 1,
+                "w": 24,
+                "x": 0,
+                "y": 0
+            },
+            "id": 100,
+            "title": "📊 月巡檢摘要",
+            "type": "row"
+        },
+        {
+            "datasource": {
+                "type": "mysql",
+                "uid": "f309677b-1ba0-4e8c-93b1-863abc193f8c"
+            },
+            "description": "lastSeen 超過 180 天的設備（排除 DHCP Pool、Guest）",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "red",
+                        "mode": "fixed"
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            },
+                            {
+                                "color": "yellow",
+                                "value": 10
+                            },
+                            {
+                                "color": "red",
+                                "value": 50
+                            }
+                        ]
+                    }
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 4,
+                "w": 4,
+                "x": 0,
+                "y": 1
+            },
+            "id": 1,
+            "options": {
+                "colorMode": "background",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "auto",
+                "wideLayout": true
+            },
+            "pluginVersion": "10.4.19+security-01",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "mysql",
+                        "uid": "f309677b-1ba0-4e8c-93b1-863abc193f8c"
+                    },
+                    "format": "table",
+                    "rawSql": "SELECT COUNT(*) AS long_offline\nFROM ipaddresses a\nWHERE a.lastSeen IS NOT NULL\n  AND a.lastSeen < NOW() - INTERVAL 180 DAY\n  AND a.lastSeen > '1970-01-02'\n  AND a.state IN (1, 2)\n  AND a.is_gateway != 1\n  AND (a.custom_DHCP_pool_range IS NULL OR a.custom_DHCP_pool_range != 1)\n  AND subnetId NOT IN (SELECT s2.id FROM subnets s2 JOIN sections sec2 ON s2.sectionId = sec2.id WHERE sec2.name = 'TC_YueyuenHotel')\n  AND subnetId NOT IN (SELECT id FROM subnets WHERE LOWER(description) LIKE '%guest%')",
+                    "refId": "A"
+                }
+            ],
+            "title": "Offline > 180 天設備數",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "mysql",
+                "uid": "f309677b-1ba0-4e8c-93b1-863abc193f8c"
+            },
+            "description": "lastSeen 超過 90 天的設備（排除 DHCP Pool、Guest）",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "orange",
+                        "mode": "fixed"
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            },
+                            {
+                                "color": "yellow",
+                                "value": 20
+                            },
+                            {
+                                "color": "orange",
+                                "value": 100
+                            }
+                        ]
+                    }
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 4,
+                "w": 4,
+                "x": 4,
+                "y": 1
+            },
+            "id": 2,
+            "options": {
+                "colorMode": "background",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "auto",
+                "wideLayout": true
+            },
+            "pluginVersion": "10.4.19+security-01",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "mysql",
+                        "uid": "f309677b-1ba0-4e8c-93b1-863abc193f8c"
+                    },
+                    "format": "table",
+                    "rawSql": "SELECT COUNT(*) AS offline_90d\nFROM ipaddresses a\nWHERE a.lastSeen IS NOT NULL\n  AND a.lastSeen < NOW() - INTERVAL 90 DAY\n  AND a.lastSeen > '1970-01-02'\n  AND a.state IN (1, 2)\n  AND a.is_gateway != 1\n  AND (a.custom_DHCP_pool_range IS NULL OR a.custom_DHCP_pool_range != 1)\n  AND subnetId NOT IN (SELECT s2.id FROM subnets s2 JOIN sections sec2 ON s2.sectionId = sec2.id WHERE sec2.name = 'TC_YueyuenHotel')\n  AND subnetId NOT IN (SELECT id FROM subnets WHERE LOWER(description) LIKE '%guest%')",
+                    "refId": "A"
+                }
+            ],
+            "title": "Offline > 90 天設備數",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "mysql",
+                "uid": "f309677b-1ba0-4e8c-93b1-863abc193f8c"
+            },
+            "description": "最近 30 天內有異動的 IP 數量（排除 DHCP Pool、Guest）",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "blue",
+                        "mode": "fixed"
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "blue",
+                                "value": null
+                            }
+                        ]
+                    }
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 4,
+                "w": 4,
+                "x": 8,
+                "y": 1
+            },
+            "id": 3,
+            "options": {
+                "colorMode": "background",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "auto",
+                "wideLayout": true
+            },
+            "pluginVersion": "10.4.19+security-01",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "mysql",
+                        "uid": "f309677b-1ba0-4e8c-93b1-863abc193f8c"
+                    },
+                    "format": "table",
+                    "rawSql": "SELECT COUNT(*) AS monthly_changes\nFROM ipaddresses a\nWHERE a.editDate >= NOW() - INTERVAL 30 DAY\n  AND (a.custom_DHCP_pool_range IS NULL OR a.custom_DHCP_pool_range != 1)\n  AND subnetId NOT IN (SELECT s2.id FROM subnets s2 JOIN sections sec2 ON s2.sectionId = sec2.id WHERE sec2.name = 'TC_YueyuenHotel')\n  AND subnetId NOT IN (SELECT id FROM subnets WHERE LOWER(description) LIKE '%guest%')",
+                    "refId": "A"
+                }
+            ],
+            "title": "本月 IP 異動數",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "mysql",
+                "uid": "f309677b-1ba0-4e8c-93b1-863abc193f8c"
+            },
+            "description": "已被記錄的 IP 總數（Static + DHCP Pool 佔位）佔總容量的比例（排除 Guest）",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "super-light-green",
+                        "mode": "fixed"
+                    },
+                    "mappings": [],
+                    "max": 100,
+                    "min": 0,
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            },
+                            {
+                                "color": "yellow",
+                                "value": 70
+                            },
+                            {
+                                "color": "red",
+                                "value": 90
+                            }
+                        ]
+                    },
+                    "unit": "percent"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 4,
+                "w": 4,
+                "x": 12,
+                "y": 1
+            },
+            "id": 4,
+            "options": {
+                "colorMode": "background",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "auto",
+                "wideLayout": true
+            },
+            "pluginVersion": "10.4.19+security-01",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "mysql",
+                        "uid": "f309677b-1ba0-4e8c-93b1-863abc193f8c"
+                    },
+                    "format": "table",
+                    "rawSql": "SELECT ROUND(\n  SUM(sub_stats.used_count) / NULLIF(SUM(sub_stats.capacity), 0) * 100, 1\n) AS 'Allocation %'\nFROM (\n  SELECT\n    sub.id AS subnet_id,\n    (SELECT COUNT(1) FROM ipaddresses ip WHERE ip.subnetId = sub.id) AS used_count,\n    GREATEST(POW(2, 32 - CAST(sub.mask AS UNSIGNED)) - 2, 0) AS capacity\n  FROM subnets sub\n  WHERE sub.isFolder = 0\n    AND CAST(sub.mask AS UNSIGNED) BETWEEN 1 AND 30\n    AND sub.sectionId NOT IN (SELECT id FROM sections WHERE name = 'TC_YueyuenHotel')\n    AND sub.id NOT IN (SELECT DISTINCT masterSubnetId FROM subnets WHERE masterSubnetId > 0 AND masterSubnetId IS NOT NULL)\n    AND LOWER(sub.description) NOT LIKE '%guest%'\n) sub_stats",
+                    "refId": "A"
+                }
+            ],
+            "title": "IP 配置率",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "mysql",
+                "uid": "f309677b-1ba0-4e8c-93b1-863abc193f8c"
+            },
+            "description": "Static IP + DHCP 30天內活躍設備，佔總容量的比例（排除 Guest）",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "green",
+                        "mode": "fixed"
+                    },
+                    "mappings": [],
+                    "max": 100,
+                    "min": 0,
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            },
+                            {
+                                "color": "yellow",
+                                "value": 50
+                            },
+                            {
+                                "color": "red",
+                                "value": 70
+                            }
+                        ]
+                    },
+                    "unit": "percent"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 4,
+                "w": 4,
+                "x": 16,
+                "y": 1
+            },
+            "id": 5,
+            "options": {
+                "colorMode": "background",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "auto",
+                "wideLayout": true
+            },
+            "pluginVersion": "10.4.19+security-01",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "mysql",
+                        "uid": "f309677b-1ba0-4e8c-93b1-863abc193f8c"
+                    },
+                    "format": "table",
+                    "rawSql": "SELECT ROUND(\n  SUM(sub_stats.used_count) / NULLIF(SUM(sub_stats.capacity), 0) * 100, 1\n) AS 'Active %'\nFROM (\n  SELECT\n    sub.id AS subnet_id,\n    (SELECT COUNT(1) FROM ipaddresses ip WHERE ip.subnetId = sub.id\n      AND ((ip.custom_DHCP_pool_range IS NULL OR ip.custom_DHCP_pool_range != 1)\n        OR (ip.custom_DHCP_pool_range = 1 AND ip.lastSeen > '1970-01-02' AND ip.lastSeen >= NOW() - INTERVAL 30 DAY))\n    ) AS used_count,\n    GREATEST(POW(2, 32 - CAST(sub.mask AS UNSIGNED)) - 2, 0) AS capacity\n  FROM subnets sub\n  WHERE sub.isFolder = 0\n    AND CAST(sub.mask AS UNSIGNED) BETWEEN 1 AND 30\n    AND sub.sectionId NOT IN (SELECT id FROM sections WHERE name = 'TC_YueyuenHotel')\n    AND sub.id NOT IN (SELECT DISTINCT masterSubnetId FROM subnets WHERE masterSubnetId > 0 AND masterSubnetId IS NOT NULL)\n    AND LOWER(sub.description) NOT LIKE '%guest%'\n) sub_stats",
+                    "refId": "A"
+                }
+            ],
+            "title": "IP 實際使用率",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "mysql",
+                "uid": "f309677b-1ba0-4e8c-93b1-863abc193f8c"
+            },
+            "description": "總容量扣除所有已記錄 IP（Static + DHCP Pool）後的可分配數量（排除 Guest）",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "purple",
+                        "mode": "fixed"
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "red",
+                                "value": null
+                            },
+                            {
+                                "color": "yellow",
+                                "value": 5000
+                            },
+                            {
+                                "color": "purple",
+                                "value": 10000
+                            }
+                        ]
+                    }
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 4,
+                "w": 4,
+                "x": 20,
+                "y": 1
+            },
+            "id": 6,
+            "options": {
+                "colorMode": "background",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "auto",
+                "wideLayout": true
+            },
+            "pluginVersion": "10.4.19+security-01",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "mysql",
+                        "uid": "f309677b-1ba0-4e8c-93b1-863abc193f8c"
+                    },
+                    "format": "table",
+                    "rawSql": "SELECT SUM(sub_stats.capacity) - SUM(sub_stats.all_used) AS 'Free IPs'\nFROM (\n  SELECT\n    sub.id AS subnet_id,\n    (SELECT COUNT(1) FROM ipaddresses ip WHERE ip.subnetId = sub.id) AS all_used,\n    GREATEST(POW(2, 32 - CAST(sub.mask AS UNSIGNED)) - 2, 0) AS capacity\n  FROM subnets sub\n  WHERE sub.isFolder = 0\n    AND CAST(sub.mask AS UNSIGNED) BETWEEN 1 AND 30\n    AND sub.sectionId NOT IN (SELECT id FROM sections WHERE name = 'TC_YueyuenHotel')\n    AND sub.id NOT IN (SELECT DISTINCT masterSubnetId FROM subnets WHERE masterSubnetId > 0 AND masterSubnetId IS NOT NULL)\n    AND LOWER(sub.description) NOT LIKE '%guest%'\n) sub_stats",
+                    "refId": "A"
+                }
+            ],
+            "title": "剩餘可用 IP 數",
+            "type": "stat"
+        },
+        {
+            "collapsed": false,
+            "gridPos": {
+                "h": 1,
+                "w": 24,
+                "x": 0,
+                "y": 5
+            },
+            "id": 101,
+            "title": "🔴 離線設備清單 - 超過 180 天未活動",
+            "type": "row"
+        },
+        {
+            "datasource": {
+                "type": "mysql",
+                "uid": "f309677b-1ba0-4e8c-93b1-863abc193f8c"
+            },
+            "description": "lastSeen 超過 180 天，建議清理或確認狀態（排除 Guest）",
+            "fieldConfig": {
+                "defaults": {
+                    "custom": {
+                        "align": "auto",
+                        "cellOptions": {
+                            "type": "auto"
+                        },
+                        "filterable": true,
+                        "inspect": false
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            },
+                            {
+                                "color": "red",
+                                "value": 80
+                            }
+                        ]
+                    }
+                },
+                "overrides": [
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Offline Days"
+                        },
+                        "properties": [
+                            {
+                                "id": "thresholds",
+                                "value": {
+                                    "mode": "absolute",
+                                    "steps": [
+                                        {
+                                            "color": "green",
+                                            "value": null
+                                        },
+                                        {
+                                            "color": "yellow",
+                                            "value": 270
+                                        },
+                                        {
+                                            "color": "red",
+                                            "value": 365
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "id": "custom.width",
+                                "value": 145
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Subnet Desc"
+                        },
+                        "properties": [
+                            {
+                                "id": "custom.width",
+                                "value": 320
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Status"
+                        },
+                        "properties": [
+                            {
+                                "id": "custom.width",
+                                "value": 85
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Last Seen"
+                        },
+                        "properties": [
+                            {
+                                "id": "custom.width",
+                                "value": 181
+                            }
+                        ]
+                    }
+                ]
+            },
+            "gridPos": {
+                "h": 9,
+                "w": 24,
+                "x": 0,
+                "y": 6
+            },
+            "id": 10,
+            "options": {
+                "cellHeight": "sm",
+                "enablePagination": true,
+                "footer": {
+                    "countRows": true,
+                    "enablePagination": true,
+                    "fields": "",
+                    "reducer": [
+                        "count"
+                    ],
+                    "show": false
+                },
+                "showHeader": true,
+                "sortBy": [
+                    {
+                        "desc": true,
+                        "displayName": "Offline Days"
+                    }
+                ]
+            },
+            "pluginVersion": "10.4.19+security-01",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "mysql",
+                        "uid": "f309677b-1ba0-4e8c-93b1-863abc193f8c"
+                    },
+                    "format": "table",
+                    "rawSql": "SELECT\n  INET_NTOA(a.ip_addr) AS 'IP',\n  IFNULL(NULLIF(a.hostname, ''), '(空值)') AS 'Hostname',\n  IFNULL(a.mac, '(無)') AS 'MAC',\n  t.type AS 'Status',\n  a.lastSeen AS 'Last Seen',\n  DATEDIFF(NOW(), a.lastSeen) AS 'Offline Days',\n  CONCAT(INET_NTOA(s.subnet), '/', s.mask) AS 'Subnet',\n  s.description AS 'Subnet Desc',\n  sec.name AS 'Section'\nFROM ipaddresses a\nJOIN subnets s ON a.subnetId = s.id\nLEFT JOIN sections sec ON s.sectionId = sec.id\nJOIN ipTags t ON a.state = t.id\nWHERE a.lastSeen IS NOT NULL\n  AND a.lastSeen < NOW() - INTERVAL 180 DAY\n  AND a.lastSeen > '1970-01-02'\n  AND a.state IN (1, 2)\n  AND a.is_gateway != 1\n  AND (a.custom_DHCP_pool_range IS NULL OR a.custom_DHCP_pool_range != 1)\n  AND sec.name != 'TC_YueyuenHotel'\n  AND LOWER(s.description) NOT LIKE '%guest%'\n  AND sec.name IN ($section)\n  AND s.description IN ($subnet_desc)\nORDER BY DATEDIFF(NOW(), a.lastSeen) DESC",
+                    "refId": "A"
+                }
+            ],
+            "title": "Offline > 180 天設備明細",
+            "type": "table"
+        },
+        {
+            "collapsed": false,
+            "gridPos": {
+                "h": 1,
+                "w": 24,
+                "x": 0,
+                "y": 15
+            },
+            "id": 102,
+            "title": "📈 Section 容量概覽",
+            "type": "row"
+        },
+        {
+            "datasource": {
+                "type": "mysql",
+                "uid": "f309677b-1ba0-4e8c-93b1-863abc193f8c"
+            },
+            "description": "各 Section 實際使用的 IP 數量（Static + DHCP 30天活躍，排除 Guest 與母網路）",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "axisBorderShow": false,
+                        "axisCenteredZero": false,
+                        "axisColorMode": "text",
+                        "axisLabel": "",
+                        "axisPlacement": "auto",
+                        "fillOpacity": 80,
+                        "gradientMode": "hue",
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "viz": false
+                        },
+                        "lineWidth": 1,
+                        "scaleDistribution": {
+                            "type": "linear"
+                        },
+                        "thresholdsStyle": {
+                            "mode": "off"
+                        }
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            },
+                            {
+                                "color": "red",
+                                "value": 80
+                            }
+                        ]
+                    }
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 24,
+                "x": 0,
+                "y": 16
+            },
+            "id": 21,
+            "options": {
+                "barRadius": 0,
+                "barWidth": 0.8,
+                "fullHighlight": false,
+                "groupWidth": 0.7,
+                "legend": {
+                    "calcs": [],
+                    "displayMode": "list",
+                    "placement": "right",
+                    "showLegend": true
+                },
+                "orientation": "auto",
+                "showValue": "auto",
+                "stacking": "none",
+                "tooltip": {
+                    "mode": "single",
+                    "sort": "none"
+                },
+                "xTickLabelRotation": 0,
+                "xTickLabelSpacing": 0
+            },
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "mysql",
+                        "uid": "f309677b-1ba0-4e8c-93b1-863abc193f8c"
+                    },
+                    "format": "table",
+                    "rawSql": "SELECT\n  sec.name AS 'Section',\n  SUM(s.used_count) AS 'Used IPs'\nFROM (\n  SELECT\n    sub.id,\n    sub.sectionId,\n    (SELECT COUNT(1) FROM ipaddresses ip WHERE ip.subnetId = sub.id\n      AND ((ip.custom_DHCP_pool_range IS NULL OR ip.custom_DHCP_pool_range != 1)\n        OR (ip.custom_DHCP_pool_range = 1 AND ip.lastSeen > '1970-01-02' AND ip.lastSeen >= NOW() - INTERVAL 30 DAY))\n    ) AS used_count\n  FROM subnets sub\n  WHERE sub.isFolder = 0\n    AND CAST(sub.mask AS UNSIGNED) BETWEEN 1 AND 30\n    AND sub.id NOT IN (\n        SELECT DISTINCT masterSubnetId\n        FROM subnets\n        WHERE masterSubnetId > 0 AND masterSubnetId IS NOT NULL\n    )\n    AND LOWER(sub.description) NOT LIKE '%guest%'\n) s\nJOIN sections sec ON s.sectionId = sec.id\nWHERE sec.name != 'TC_YueyuenHotel'\nGROUP BY sec.id, sec.name\nORDER BY `Used IPs` DESC",
+                    "refId": "A"
+                }
+            ],
+            "title": "各 Section IP 使用量",
+            "type": "barchart"
+        },
+        {
+            "datasource": {
+                "type": "mysql",
+                "uid": "f309677b-1ba0-4e8c-93b1-863abc193f8c"
+            },
+            "description": "各 Section 容量與使用率（Used = Static + DHCP 30天活躍；Free = Capacity - Static - DHCP Pool；排除 Guest）",
+            "fieldConfig": {
+                "defaults": {
+                    "custom": {
+                        "align": "auto",
+                        "cellOptions": {
+                            "type": "auto"
+                        },
+                        "filterable": true,
+                        "inspect": false
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            },
+                            {
+                                "color": "red",
+                                "value": 80
+                            }
+                        ]
+                    }
+                },
+                "overrides": [
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Usage %"
+                        },
+                        "properties": [
+                            {
+                                "id": "min",
+                                "value": 0
+                            },
+                            {
+                                "id": "max",
+                                "value": 100
+                            },
+                            {
+                                "id": "thresholds",
+                                "value": {
+                                    "mode": "absolute",
+                                    "steps": [
+                                        {
+                                            "color": "green",
+                                            "value": null
+                                        },
+                                        {
+                                            "color": "yellow",
+                                            "value": 60
+                                        },
+                                        {
+                                            "color": "red",
+                                            "value": 80
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "id": "custom.cellOptions",
+                                "value": {
+                                    "mode": "lcd",
+                                    "type": "gauge",
+                                    "valueDisplayMode": "color"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            "gridPos": {
+                "h": 9,
+                "w": 24,
+                "x": 0,
+                "y": 24
+            },
+            "id": 20,
+            "options": {
+                "cellHeight": "sm",
+                "enablePagination": true,
+                "footer": {
+                    "countRows": false,
+                    "enablePagination": true,
+                    "fields": "",
+                    "reducer": [
+                        "sum"
+                    ],
+                    "show": false
+                },
+                "showHeader": true,
+                "sortBy": [
+                    {
+                        "desc": true,
+                        "displayName": "Usage %"
+                    }
+                ]
+            },
+            "pluginVersion": "10.4.19+security-01",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "mysql",
+                        "uid": "f309677b-1ba0-4e8c-93b1-863abc193f8c"
+                    },
+                    "format": "table",
+                    "rawSql": "SELECT\n  sec.name AS 'Section',\n  COUNT(s.id) AS 'Subnet Count',\n  SUM(s.capacity) AS 'Total IPs',\n  SUM(s.static_used) + SUM(s.dhcp_active) AS 'Used IPs',\n  SUM(s.dhcp_pool) AS 'DHCP Pool',\n  SUM(s.capacity) - SUM(s.static_used) - SUM(s.dhcp_pool) AS 'Free IPs',\n  ROUND((SUM(s.static_used) + SUM(s.dhcp_active)) / NULLIF(SUM(s.capacity), 0) * 100, 1) AS 'Usage %'\nFROM (\n  SELECT\n    sub.id,\n    sub.sectionId,\n    GREATEST(POW(2, 32 - CAST(sub.mask AS UNSIGNED)) - 2, 0) AS capacity,\n    (SELECT COUNT(1) FROM ipaddresses ip WHERE ip.subnetId = sub.id AND (ip.custom_DHCP_pool_range IS NULL OR ip.custom_DHCP_pool_range != 1)) AS static_used,\n    (SELECT COUNT(1) FROM ipaddresses ip WHERE ip.subnetId = sub.id AND ip.custom_DHCP_pool_range = 1 AND ip.lastSeen > '1970-01-02' AND ip.lastSeen >= NOW() - INTERVAL 30 DAY) AS dhcp_active,\n    (SELECT COUNT(1) FROM ipaddresses ip WHERE ip.subnetId = sub.id AND ip.custom_DHCP_pool_range = 1) AS dhcp_pool\n  FROM subnets sub\n  WHERE sub.isFolder = 0\n    AND CAST(sub.mask AS UNSIGNED) BETWEEN 1 AND 30\n    AND sub.id NOT IN (SELECT DISTINCT masterSubnetId FROM subnets WHERE masterSubnetId > 0 AND masterSubnetId IS NOT NULL)\n    AND LOWER(sub.description) NOT LIKE '%guest%'\n) s\nJOIN sections sec ON s.sectionId = sec.id\nWHERE sec.name != 'TC_YueyuenHotel'\nGROUP BY sec.id, sec.name\nORDER BY `Usage %` DESC",
+                    "refId": "A"
+                }
+            ],
+            "title": "各 Section 容量統計",
+            "type": "table"
+        }
+    ],
+    "refresh": "",
+    "schemaVersion": 39,
+    "tags": [
+        "phpIPAM",
+        "monthly",
+        "巡檢",
+        "Refactored"
+    ],
+    "templating": {
+        "list": [
+            {
+                "current": {
+                    "selected": false,
+                    "text": "All",
+                    "value": "$__all"
+                },
+                "datasource": {
+                    "type": "mysql",
+                    "uid": "f309677b-1ba0-4e8c-93b1-863abc193f8c"
+                },
+                "definition": "SELECT DISTINCT name FROM sections WHERE name != 'TC_YueyuenHotel' ORDER BY name",
+                "description": "關聯式主項",
+                "hide": 0,
+                "includeAll": true,
+                "label": "地區",
+                "multi": false,
+                "name": "section",
+                "options": [],
+                "query": "SELECT DISTINCT name FROM sections WHERE name != 'TC_YueyuenHotel' ORDER BY name",
+                "refresh": 1,
+                "regex": "",
+                "skipUrlSync": false,
+                "sort": 1,
+                "type": "query"
+            },
+            {
+                "current": {
+                    "selected": false,
+                    "text": "All",
+                    "value": "$__all"
+                },
+                "datasource": {
+                    "type": "mysql",
+                    "uid": "f309677b-1ba0-4e8c-93b1-863abc193f8c"
+                },
+                "definition": "SELECT DISTINCT s.description FROM subnets s JOIN sections sec ON s.sectionId = sec.id WHERE sec.name != 'TC_YueyuenHotel' AND LOWER(s.description) NOT LIKE '%guest%' AND s.description IS NOT NULL AND s.description != '' AND sec.name IN ($section) ORDER BY s.description",
+                "description": "關聯式從項",
+                "hide": 0,
+                "includeAll": true,
+                "label": "網段名稱",
+                "multi": false,
+                "name": "subnet_desc",
+                "options": [],
+                "query": "SELECT DISTINCT s.description FROM subnets s JOIN sections sec ON s.sectionId = sec.id WHERE sec.name != 'TC_YueyuenHotel' AND LOWER(s.description) NOT LIKE '%guest%' AND s.description IS NOT NULL AND s.description != '' AND sec.name IN ($section) ORDER BY s.description",
+                "refresh": 1,
+                "regex": "",
+                "skipUrlSync": false,
+                "sort": 1,
+                "type": "query"
+            }
+        ]
+    },
+    "time": {
+        "from": "now-30d",
+        "to": "now"
+    },
+    "timepicker": {},
+    "timezone": "browser",
+    "title": "phpIPAM 月巡檢 Dashboard",
+    "uid": "affh5b4n6aiv4f",
+    "version": 25,
+    "weekStart": ""
+}
