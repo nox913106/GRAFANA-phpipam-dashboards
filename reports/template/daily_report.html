@@ -642,7 +642,7 @@ function stackedBar(id, data) {
     }
   }));
 
-  // 透明 Total dataset，只負責顯示加總數字
+  // 透明 Total dataset，只負責顯示加總數字（固定於 bar 內側右端，不超出邊界）
   const totalDataset = {
     label: 'Total',
     data: totals,
@@ -651,9 +651,12 @@ function stackedBar(id, data) {
     datalabels: {
       display: true,
       anchor: 'end',
-      align: 'right',
-      color: '#212121',
+      align: 'left',          // 標籤在 bar 右端內側，永遠不超出 canvas
+      color: '#fff',
       font: { size: 11, weight: 'bold' },
+      backgroundColor: 'rgba(0,0,0,0.50)',
+      borderRadius: 3,
+      padding: { left: 5, right: 5, top: 2, bottom: 2 },
       formatter: v => v,
     }
   };
@@ -664,20 +667,18 @@ function stackedBar(id, data) {
     options: {
       indexAxis: 'y',
       responsive: true,
-      layout: { padding: { right: 40 } },
       plugins: {
         legend: {
           position: 'right',
           labels: {
             boxWidth: 12,
             font: { size: 11 },
-            // Total dataset 不顯示在圖例
             filter: item => item.text !== 'Total',
           }
         },
       },
       scales: {
-        x: { stacked: true, max: Math.ceil(maxTotal * 1.2), grid: { color: '#F0F0F0' } },
+        x: { stacked: true, grid: { color: '#F0F0F0' } },
         y: { stacked: true, ticks: { font: { size: 12 } } }
       }
     }
