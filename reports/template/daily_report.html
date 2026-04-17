@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>phpIPAM 日巡檢報表 — {{ report_date }}</title>
   <script src="/static/js/chart.umd.min.js"></script>
+  <script src="/static/js/chartjs-plugin-datalabels.min.js"></script>
   <style>
     :root {
       --blue:   #1976D2;
@@ -591,6 +592,9 @@
      資料由 Jinja2 渲染後以 JSON 嵌入
 ════════════════════════════════════════ -->
 <script>
+// 全域註冊 datalabels plugin
+Chart.register(ChartDataLabels);
+
 const SITE_SUBNETS  = {{ site_subnets    | tojson }};
 const SITE_CAPACITY = {{ site_ip_capacity | tojson }};
 const CHANGE_TYPE   = {{ change_type_dist | tojson }};
@@ -612,8 +616,9 @@ const CHANGE_COLORS = {
   DELETED: '#D32F2F',
 };
 
-/* ── 水平堆疊長條圖（站點網段 / 容量） ── */
-function stackedBar(id, data, height) {
+/* ── 水平堆疊長條圖（站點網段 / 容量） ──
+   數值標籤：顯示在每段 bar 中間（白字），0 值不顯示 */
+function stackedBar(id, data) {
   const cats = ['Server','IIOT','OA','Voice','Guest','Others'];
   new Chart(document.getElementById(id), {
     type: 'bar',
@@ -630,7 +635,15 @@ function stackedBar(id, data, height) {
       indexAxis: 'y',
       responsive: true,
       plugins: {
-        legend: { position: 'right', labels: { boxWidth: 12, font: { size: 11 } } }
+        legend: { position: 'right', labels: { boxWidth: 12, font: { size: 11 } } },
+        datalabels: {
+          display: ctx => ctx.dataset.data[ctx.dataIndex] > 0,
+          anchor: 'center',
+          align: 'center',
+          color: '#fff',
+          font: { size: 10, weight: 'bold' },
+          formatter: v => v,
+        }
       },
       scales: {
         x: { stacked: true, grid: { color: '#F0F0F0' } },
@@ -640,9 +653,11 @@ function stackedBar(id, data, height) {
   });
 }
 
-/* ── 水平長條圖（操作者 / 類型 / Section） ── */
+/* ── 水平長條圖（操作者 / 類型 / Section）
+   數值標籤：顯示在 bar 右側末端（深色字） */
 function hBar(id, data, colorMap) {
   const colors = data.map(d => (colorMap && colorMap[d.metric]) || '#4A9EFF');
+  const maxVal = Math.max(...data.map(d => d.value));
   new Chart(document.getElementById(id), {
     type: 'bar',
     data: {
@@ -652,16 +667,32 @@ function hBar(id, data, colorMap) {
     options: {
       indexAxis: 'y',
       responsive: true,
-      plugins: { legend: { display: false } },
+      layout: { padding: { right: 32 } },
+      plugins: {
+        legend: { display: false },
+        datalabels: {
+          anchor: 'end',
+          align: 'right',
+          color: '#333',
+          font: { size: 11, weight: 'bold' },
+          formatter: v => v,
+        }
+      },
       scales: {
-        x: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#F0F0F0' } },
+        x: {
+          beginAtZero: true,
+          max: Math.ceil(maxVal * 1.25),
+          ticks: { precision: 0 },
+          grid: { color: '#F0F0F0' }
+        },
         y: { ticks: { font: { size: 11 } } }
       }
     }
   });
 }
 
-/* ── 高使用率 Progress Bar 風格 ── */
+/* ── 高使用率 Progress Bar 風格
+   數值標籤：顯示在 bar 左側（白字，bar 較寬時）或右側外（深色字） */
 function usageBar(id, data) {
   const colors = data.map(d =>
     d.usage_pct >= 95 ? '#D32F2F' : d.usage_pct >= 90 ? '#F57C00' : '#F9A825'
@@ -680,7 +711,17 @@ function usageBar(id, data) {
     options: {
       indexAxis: 'y',
       responsive: true,
-      plugins: { legend: { display: false } },
+      layout: { padding: { right: 40 } },
+      plugins: {
+        legend: { display: false },
+        datalabels: {
+          anchor: ctx => ctx.dataset.data[ctx.dataIndex] >= 50 ? 'end' : 'end',
+          align: ctx => ctx.dataset.data[ctx.dataIndex] >= 50 ? 'left' : 'right',
+          color: ctx => ctx.dataset.data[ctx.dataIndex] >= 50 ? '#fff' : '#333',
+          font: { size: 11, weight: 'bold' },
+          formatter: v => v + '%',
+        }
+      },
       scales: {
         x: {
           beginAtZero: true, max: 100,
