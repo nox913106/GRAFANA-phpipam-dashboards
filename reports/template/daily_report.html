@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>phpIPAM 日巡檢報表 — {{ report_date }}</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="/static/js/chart.umd.min.js"></script>
   <style>
     :root {
       --blue:   #1976D2;
@@ -249,10 +249,34 @@
       color: var(--muted);
     }
 
+    /* ── PDF BUTTON ── */
+    .pdf-btn {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 20px;
+      background: #1a1a2e;
+      color: #fff;
+      border: none;
+      border-radius: 30px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(0,0,0,.3);
+      transition: background .15s, transform .1s;
+    }
+    .pdf-btn:hover  { background: #16213e; transform: translateY(-1px); }
+    .pdf-btn:active { transform: translateY(0); }
+
     /* ── PRINT ── */
     @media print {
       body { background: #fff; }
       .page { padding: 0; }
+      .pdf-btn { display: none; }
       .report-header, .stat-card, .ai-wrap {
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
@@ -550,6 +574,17 @@
 
 </div><!-- /page -->
 
+<!-- ── PDF 匯出按鈕 ── -->
+<button class="pdf-btn" onclick="exportPDF()">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+    <polyline points="14 2 14 8 20 8"/>
+    <line x1="12" y1="18" x2="12" y2="12"/>
+    <polyline points="9 15 12 18 15 15"/>
+  </svg>
+  匯出 PDF
+</button>
+
 
 <!-- ════════════════════════════════════════
      Chart.js 初始化
@@ -664,6 +699,13 @@ hBar('chartChangeType',  CHANGE_TYPE, CHANGE_COLORS);
 hBar('chartOperator',    OPERATORS,   null);
 hBar('chartSectionHeat', SEC_HEAT,    null);
 usageBar('chartHighUsage', HIGH_USAGE);
+
+function exportPDF() {
+  const btn = document.querySelector('.pdf-btn');
+  btn.style.display = 'none';
+  window.print();
+  setTimeout(() => { btn.style.display = 'flex'; }, 500);
+}
 </script>
 </body>
 </html>
