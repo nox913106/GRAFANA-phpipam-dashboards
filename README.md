@@ -34,9 +34,6 @@ phpIPAM 日巡檢、週巡檢、月巡檢的 Grafana Dashboard 定義檔。
 | 靜態 IP 欄位變更 | Table | 快照比對 MAC/Hostname/Owner 實際變更 |
 | 高使用率 TOP 20 | Bar Gauge | 使用率 > 80% 的網段 |
 | 高使用率明細 | Table | 含 Used/Total/Free 欄位 |
-| DHCP Avg Latency (24hr) | Stat | 各 DHCP 平均延遲，10/50/100ms 門檻 |
-| DHCP Ping Latency 趨勢 | Time Series | 各 DHCP 24hr 延遲曲線 |
-| DHCP 連線統計 (24hr) | Table | Avg/Min/Max/Jitter/Uptime% |
 
 ### 週巡檢 Dashboard
 | Panel | 類型 | 說明 |
@@ -66,40 +63,15 @@ phpIPAM 日巡檢、週巡檢、月巡檢的 Grafana Dashboard 定義檔。
 
 - Grafana Data Source `TW_IPAM` 已連接 phpIPAM MariaDB
 - phpIPAM `ipaddresses` 表有 `custom_DHCP_pool_range` 欄位
-- `grafana_dhcp_ping_history` 表已建立（見下方部署步驟）
 - `grafana_ip_snapshot` + `grafana_ip_changes` 表已建立（見下方部署步驟）
 - Grafana 使用者有 `SELECT` 權限
 
-### DHCP Ping Collector 部署（stwphpipam-p）
+### IP 異動偵測 Cron（`/etc/crontab`）
 
 ```bash
-# 1. 部署專案至標準路徑
-cp -r scripts/ config/ database/ /opt/tools/grafana-dhcp-ping/
-
-# 2. 建立資料表
-docker exec phpipam_phpipam-mariadb_1 mysql -u phpipam -pmy_secret_phpipam_pass phpipam < /opt/tools/grafana-dhcp-ping/database/grafana_dhcp_ping.sql
-
-# 3. 安裝 Python 依賴
-pip install pymysql
-
-# 4. 編輯 DHCP 伺服器清單
-vi /opt/tools/grafana-dhcp-ping/config/dhcp_servers.json
-
-# 5. 測試單次執行
-cd /opt/tools/grafana-dhcp-ping && python3 scripts/dhcp_ping_collector.py
-```
-
-### Cron 設定（`/etc/crontab`）
-
-```bash
-# 每分鐘 Ping DHCP 伺服器，結果寫入 grafana_dhcp_ping_history
-* * * * * root cd /opt/tools/grafana-dhcp-ping && python3 scripts/dhcp_ping_collector.py >> /var/log/grafana-dhcp-ping.log 2>&1
-
 # 每 5 分鐘偵測靜態 IP 欄位異動 (MAC/Hostname/Owner)
-*/5 * * * * root cd /opt/tools/grafana-dhcp-ping && python3 scripts/ip_change_detector.py >> /var/log/grafana-ip-changes.log 2>&1
+*/5 * * * * root cd /opt/tools/grafana-ip-changes && python3 scripts/ip_change_detector.py >> /var/log/grafana-ip-changes.log 2>&1
 ```
-
-> **注意**: 部署完成後，建議同步更新 `phpIPAM_Rules.md` 的「部署路徑對照表」（Section 5）與「Crontab 設定」（Section 4）。
 
 ## 🔑 關鍵 SQL 邏輯
 
