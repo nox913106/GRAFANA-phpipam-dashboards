@@ -2053,6 +2053,77 @@
             ],
             "title": "高使用率網段明細",
             "type": "table"
+        },
+        {
+            "datasource": {
+                "type": "mysql",
+                "uid": "f309677b-1ba0-4e8c-93b1-863abc193f8c"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "custom": {
+                        "align": "auto",
+                        "cellOptions": {
+                            "type": "auto"
+                        },
+                        "inspect": false
+                    },
+                    "mappings": [],
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            }
+                        ]
+                    }
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 24,
+                "x": 0,
+                "y": 76
+            },
+            "id": 32,
+            "options": {
+                "cellHeight": "sm",
+                "enablePagination": true,
+                "footer": {
+                    "countRows": true,
+                    "fields": "",
+                    "reducer": [
+                        "count"
+                    ],
+                    "show": true
+                },
+                "showHeader": true,
+                "sortBy": [
+                    {
+                        "desc": false,
+                        "displayName": "Site"
+                    }
+                ]
+            },
+            "pluginVersion": "10.4.19+security-01",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "mysql",
+                        "uid": "f309677b-1ba0-4e8c-93b1-863abc193f8c"
+                    },
+                    "format": "table",
+                    "rawSql": "SELECT\n  CASE\n    WHEN sec.name IN ('CH_HQ2','CH_HQ2_DMZ','CH_HQ2_IOT') THEN 'CH_HQ2'\n    WHEN sec.name IN ('CH_PGT','CH_PGT_IOT') THEN 'CH_PGT'\n    WHEN sec.name IN ('TC_HQ','TC_HQ_DMZ','TC-HQ_IOT') THEN 'TC_HQ'\n    WHEN sec.name IN ('TC_UAIC','TC_UAIC_IOT') THEN 'TC_UAIC'\n    WHEN sec.name IN ('TP_XinYi','TP_XinYi_DMZ') THEN 'TP_XinYi'\n    ELSE sec.name\n  END AS 'Site',\n  CONCAT(INET_NTOA(s.subnet), '/', s.mask) AS 'Subnet CIDR',\n  IFNULL(s.description, '(空值)') AS 'Description',\n  sec.name AS 'Section'\nFROM subnets s\nJOIN sections sec ON s.sectionId = sec.id\nWHERE s.isFolder = 0\n  AND CAST(s.mask AS UNSIGNED) < 31\n  AND CAST(s.mask AS UNSIGNED) > 0\n  AND sec.name != 'TC_YueyuenHotel'\n  AND s.id NOT IN (SELECT DISTINCT masterSubnetId FROM subnets WHERE masterSubnetId != 0)\n  AND s.description NOT LIKE '%SRV%'\n  AND s.description NOT LIKE '%Server%'\n  AND s.description NOT LIKE '%IOT%'\n  AND s.description NOT LIKE '%IIOT%'\n  AND s.description NOT LIKE '%ACC%'\n  AND s.description NOT LIKE '%OA%'\n  AND s.description NOT LIKE '%VOICE%'\n  AND s.description NOT LIKE '%Guest%'\n  AND s.description NOT LIKE 'NET_%'\nORDER BY site, s.description",
+                    "refId": "A"
+                }
+            ],
+            "title": "Undefine Subnet",
+            "type": "table"
         }
     ],
     "refresh": "5m",
