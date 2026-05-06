@@ -355,6 +355,21 @@
                     {
                         "matcher": {
                             "id": "byName",
+                            "options": "NET"
+                        },
+                        "properties": [
+                            {
+                                "id": "color",
+                                "value": {
+                                    "fixedColor": "semi-dark-orange",
+                                    "mode": "fixed"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
                             "options": "Others"
                         },
                         "properties": [
@@ -433,7 +448,7 @@
                     "editorMode": "code",
                     "format": "table",
                     "rawQuery": true,
-                    "rawSql": "SELECT\n  CASE\n    WHEN sec.name IN ('CH_HQ2','CH_HQ2_DMZ','CH_HQ2_IOT') THEN 'CH_HQ2'\n    WHEN sec.name IN ('CH_PGT','CH_PGT_IOT') THEN 'CH_PGT'\n    WHEN sec.name IN ('TC_HQ','TC_HQ_DMZ','TC-HQ_IOT') THEN 'TC_HQ'\n    WHEN sec.name IN ('TC_UAIC','TC_UAIC_IOT') THEN 'TC_UAIC'\n    WHEN sec.name IN ('TP_XinYi','TP_XinYi_DMZ') THEN 'TP_XinYi'\n    ELSE sec.name\n  END AS site,\n  COUNT(CASE WHEN s.description LIKE '%SRV%' OR s.description LIKE '%Server%' THEN 1 END) AS Server,\n  COUNT(CASE WHEN s.description LIKE '%IOT%' OR s.description LIKE '%IIOT%' THEN 1 END) AS IIOT,\n  COUNT(CASE WHEN s.description LIKE '%ACC%' OR s.description LIKE '%OA%' THEN 1 END) AS OA,\n  COUNT(CASE WHEN s.description LIKE '%VOICE%' THEN 1 END) AS Voice,\n  COUNT(CASE WHEN s.description LIKE '%Guest%' THEN 1 END) AS Guest,\n  COUNT(CASE WHEN s.description NOT LIKE '%SRV%' AND s.description NOT LIKE '%Server%' AND s.description NOT LIKE '%IOT%' AND s.description NOT LIKE '%IIOT%' AND s.description NOT LIKE '%ACC%' AND s.description NOT LIKE '%OA%' AND s.description NOT LIKE '%VOICE%' AND s.description NOT LIKE '%Guest%' THEN 1 END) AS Others,\n  COUNT(s.id) AS Total\nFROM subnets s\nJOIN sections sec ON s.sectionId = sec.id\nWHERE s.isFolder = 0\n  AND CAST(s.mask AS UNSIGNED) < 31\n  AND CAST(s.mask AS UNSIGNED) > 0\n  AND sec.name != 'TC_YueyuenHotel'\n  AND s.id NOT IN (SELECT DISTINCT masterSubnetId FROM subnets WHERE masterSubnetId != 0)\nGROUP BY site\nORDER BY SUM(POW(2, 32 - CAST(s.mask AS UNSIGNED)) - 2) DESC",
+                    "rawSql": "SELECT\n  CASE\n    WHEN sec.name IN ('CH_HQ2','CH_HQ2_DMZ','CH_HQ2_IOT') THEN 'CH_HQ2'\n    WHEN sec.name IN ('CH_PGT','CH_PGT_IOT') THEN 'CH_PGT'\n    WHEN sec.name IN ('TC_HQ','TC_HQ_DMZ','TC-HQ_IOT') THEN 'TC_HQ'\n    WHEN sec.name IN ('TC_UAIC','TC_UAIC_IOT') THEN 'TC_UAIC'\n    WHEN sec.name IN ('TP_XinYi','TP_XinYi_DMZ') THEN 'TP_XinYi'\n    ELSE sec.name\n  END AS site,\n  COUNT(CASE WHEN s.description LIKE '%SRV%' OR s.description LIKE '%Server%' THEN 1 END) AS Server,\n  COUNT(CASE WHEN s.description LIKE '%IOT%' OR s.description LIKE '%IIOT%' THEN 1 END) AS IIOT,\n  COUNT(CASE WHEN s.description LIKE '%ACC%' OR s.description LIKE '%OA%' THEN 1 END) AS OA,\n  COUNT(CASE WHEN s.description LIKE '%VOICE%' THEN 1 END) AS Voice,\n  COUNT(CASE WHEN s.description LIKE '%Guest%' THEN 1 END) AS Guest,\n  COUNT(CASE WHEN s.description LIKE 'NET_%' THEN 1 END) AS NET,\n  COUNT(CASE WHEN s.description NOT LIKE '%SRV%' AND s.description NOT LIKE '%Server%' AND s.description NOT LIKE '%IOT%' AND s.description NOT LIKE '%IIOT%' AND s.description NOT LIKE '%ACC%' AND s.description NOT LIKE '%OA%' AND s.description NOT LIKE '%VOICE%' AND s.description NOT LIKE '%Guest%' AND s.description NOT LIKE 'NET_%' THEN 1 END) AS Others,\n  COUNT(s.id) AS Total\nFROM subnets s\nJOIN sections sec ON s.sectionId = sec.id\nWHERE s.isFolder = 0\n  AND CAST(s.mask AS UNSIGNED) < 31\n  AND CAST(s.mask AS UNSIGNED) > 0\n  AND sec.name != 'TC_YueyuenHotel'\n  AND s.id NOT IN (SELECT DISTINCT masterSubnetId FROM subnets WHERE masterSubnetId != 0)\nGROUP BY site\nORDER BY SUM(POW(2, 32 - CAST(s.mask AS UNSIGNED)) - 2) DESC",
                     "refId": "A"
                 }
             ],
@@ -562,6 +577,21 @@
                     {
                         "matcher": {
                             "id": "byName",
+                            "options": "NET"
+                        },
+                        "properties": [
+                            {
+                                "id": "color",
+                                "value": {
+                                    "fixedColor": "semi-dark-orange",
+                                    "mode": "fixed"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
                             "options": "Others"
                         },
                         "properties": [
@@ -640,7 +670,7 @@
                     "editorMode": "code",
                     "format": "table",
                     "rawQuery": true,
-                    "rawSql": "SELECT\n  CASE\n    WHEN sec.name IN ('CH_HQ2','CH_HQ2_DMZ','CH_HQ2_IOT') THEN 'CH_HQ2'\n    WHEN sec.name IN ('CH_PGT','CH_PGT_IOT') THEN 'CH_PGT'\n    WHEN sec.name IN ('TC_HQ','TC_HQ_DMZ','TC-HQ_IOT') THEN 'TC_HQ'\n    WHEN sec.name IN ('TC_UAIC','TC_UAIC_IOT') THEN 'TC_UAIC'\n    WHEN sec.name IN ('TP_XinYi','TP_XinYi_DMZ') THEN 'TP_XinYi'\n    ELSE sec.name\n  END AS site,\n  SUM(CASE WHEN s.description LIKE '%SRV%' OR s.description LIKE '%Server%' THEN POW(2, 32 - CAST(s.mask AS UNSIGNED)) - 2 ELSE 0 END) AS Server,\n  SUM(CASE WHEN s.description LIKE '%IOT%' OR s.description LIKE '%IIOT%' THEN POW(2, 32 - CAST(s.mask AS UNSIGNED)) - 2 ELSE 0 END) AS IIOT,\n  SUM(CASE WHEN s.description LIKE '%ACC%' OR s.description LIKE '%OA%' THEN POW(2, 32 - CAST(s.mask AS UNSIGNED)) - 2 ELSE 0 END) AS OA,\n  SUM(CASE WHEN s.description LIKE '%VOICE%' THEN POW(2, 32 - CAST(s.mask AS UNSIGNED)) - 2 ELSE 0 END) AS Voice,\n  SUM(CASE WHEN s.description LIKE '%Guest%' THEN POW(2, 32 - CAST(s.mask AS UNSIGNED)) - 2 ELSE 0 END) AS Guest,\n  SUM(CASE WHEN s.description NOT LIKE '%SRV%' AND s.description NOT LIKE '%Server%' AND s.description NOT LIKE '%IOT%' AND s.description NOT LIKE '%IIOT%' AND s.description NOT LIKE '%ACC%' AND s.description NOT LIKE '%OA%' AND s.description NOT LIKE '%VOICE%' AND s.description NOT LIKE '%Guest%' THEN POW(2, 32 - CAST(s.mask AS UNSIGNED)) - 2 ELSE 0 END) AS Others,\n  SUM(POW(2, 32 - CAST(s.mask AS UNSIGNED)) - 2) AS Total\nFROM subnets s\nJOIN sections sec ON s.sectionId = sec.id\nWHERE s.isFolder = 0\n  AND CAST(s.mask AS UNSIGNED) < 31\n  AND CAST(s.mask AS UNSIGNED) > 0\n  AND sec.name != 'TC_YueyuenHotel'\n  AND s.id NOT IN (SELECT DISTINCT masterSubnetId FROM subnets WHERE masterSubnetId != 0)\nGROUP BY site\nORDER BY SUM(POW(2, 32 - CAST(s.mask AS UNSIGNED)) - 2) DESC",
+                    "rawSql": "SELECT\n  CASE\n    WHEN sec.name IN ('CH_HQ2','CH_HQ2_DMZ','CH_HQ2_IOT') THEN 'CH_HQ2'\n    WHEN sec.name IN ('CH_PGT','CH_PGT_IOT') THEN 'CH_PGT'\n    WHEN sec.name IN ('TC_HQ','TC_HQ_DMZ','TC-HQ_IOT') THEN 'TC_HQ'\n    WHEN sec.name IN ('TC_UAIC','TC_UAIC_IOT') THEN 'TC_UAIC'\n    WHEN sec.name IN ('TP_XinYi','TP_XinYi_DMZ') THEN 'TP_XinYi'\n    ELSE sec.name\n  END AS site,\n  SUM(CASE WHEN s.description LIKE '%SRV%' OR s.description LIKE '%Server%' THEN POW(2, 32 - CAST(s.mask AS UNSIGNED)) - 2 ELSE 0 END) AS Server,\n  SUM(CASE WHEN s.description LIKE '%IOT%' OR s.description LIKE '%IIOT%' THEN POW(2, 32 - CAST(s.mask AS UNSIGNED)) - 2 ELSE 0 END) AS IIOT,\n  SUM(CASE WHEN s.description LIKE '%ACC%' OR s.description LIKE '%OA%' THEN POW(2, 32 - CAST(s.mask AS UNSIGNED)) - 2 ELSE 0 END) AS OA,\n  SUM(CASE WHEN s.description LIKE '%VOICE%' THEN POW(2, 32 - CAST(s.mask AS UNSIGNED)) - 2 ELSE 0 END) AS Voice,\n  SUM(CASE WHEN s.description LIKE '%Guest%' THEN POW(2, 32 - CAST(s.mask AS UNSIGNED)) - 2 ELSE 0 END) AS Guest,\n  SUM(CASE WHEN s.description LIKE 'NET_%' THEN POW(2, 32 - CAST(s.mask AS UNSIGNED)) - 2 ELSE 0 END) AS NET,\n  SUM(CASE WHEN s.description NOT LIKE '%SRV%' AND s.description NOT LIKE '%Server%' AND s.description NOT LIKE '%IOT%' AND s.description NOT LIKE '%IIOT%' AND s.description NOT LIKE '%ACC%' AND s.description NOT LIKE '%OA%' AND s.description NOT LIKE '%VOICE%' AND s.description NOT LIKE '%Guest%' AND s.description NOT LIKE 'NET_%' THEN POW(2, 32 - CAST(s.mask AS UNSIGNED)) - 2 ELSE 0 END) AS Others,\n  SUM(POW(2, 32 - CAST(s.mask AS UNSIGNED)) - 2) AS Total\nFROM subnets s\nJOIN sections sec ON s.sectionId = sec.id\nWHERE s.isFolder = 0\n  AND CAST(s.mask AS UNSIGNED) < 31\n  AND CAST(s.mask AS UNSIGNED) > 0\n  AND sec.name != 'TC_YueyuenHotel'\n  AND s.id NOT IN (SELECT DISTINCT masterSubnetId FROM subnets WHERE masterSubnetId != 0)\nGROUP BY site\nORDER BY SUM(POW(2, 32 - CAST(s.mask AS UNSIGNED)) - 2) DESC",
                     "refId": "A"
                 }
             ],
